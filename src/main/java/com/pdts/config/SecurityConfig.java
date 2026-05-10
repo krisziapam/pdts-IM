@@ -33,25 +33,53 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // For a school/demo local system, disabling CSRF keeps normal HTML forms simple.
-                // Enable CSRF again before production deployment.
+                // CSRF is disabled for this school/demo system so normal HTML forms work simply.
+                // For real production use, enable CSRF again and include CSRF tokens in forms.
                 .csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/js/**", "/assets/**").permitAll()
-                        .requestMatchers("/", "/portal/**", "/api/portal/**").permitAll()
-                        .requestMatchers("/login", "/login-error").permitAll()
-                        .anyRequest().authenticated())
+                        // Static files
+                        .requestMatchers(
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/assets/**",
+                                "/webjars/**",
+                                "/favicon.ico"
+                        ).permitAll()
+
+                        // Public pages and portal pages
+                        .requestMatchers(
+                                "/",
+                                "/login",
+                                "/login-error",
+                                "/error",
+                                "/portal/**",
+                                "/api/portal/**"
+                        ).permitAll()
+
+                        // Everything else requires login
+                        .anyRequest().authenticated()
+                )
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
+                        .usernameParameter("username")
+                        .passwordParameter("password")
                         .defaultSuccessUrl("/dashboard", true)
                         .failureUrl("/login?error=true")
-                        .permitAll())
+                        .permitAll()
+                )
+
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
-                        .permitAll())
-                .sessionManagement(session -> session.maximumSessions(1));
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                );
 
         return http.build();
     }
@@ -74,13 +102,17 @@ public class SecurityConfig {
             return new org.springframework.security.core.userdetails.User(
                     user.getUsername(),
                     user.getPasswordHash(),
-                    List.of(new SimpleGrantedAuthority(authority)));
+                    List.of(new SimpleGrantedAuthority(authority))
+            );
         };
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        int strength = pdtsProperties.getBcryptStrength() > 0 ? pdtsProperties.getBcryptStrength() : 10;
+        int strength = pdtsProperties.getBcryptStrength() > 0
+                ? pdtsProperties.getBcryptStrength()
+                : 10;
+
         BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder(strength);
 
         return new PasswordEncoder() {
@@ -94,15 +126,17 @@ public class SecurityConfig {
                 String typed = rawPassword == null ? "" : rawPassword.toString().trim();
                 String saved = encodedPassword == null ? "" : encodedPassword.trim();
 
+                // Supports demo seed passwords like {noop}Admin@2025
                 if (saved.startsWith("{noop}")) {
                     return typed.equals(saved.substring(6));
                 }
 
+                // Supports BCrypt passwords
                 if (saved.startsWith("$2a$") || saved.startsWith("$2b$") || saved.startsWith("$2y$")) {
                     return bcrypt.matches(typed, saved);
                 }
 
-                // Compatibility for local demo records saved as plain text.
+                // Compatibility for older local demo records saved as plain text
                 return typed.equals(saved);
             }
         };
