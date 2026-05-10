@@ -33,12 +33,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF is disabled for this school/demo system so normal HTML forms work simply.
-                // For real production use, enable CSRF again and include CSRF tokens in forms.
+                // CSRF disabled for school/demo HTML form simplicity.
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
-                        // Static files
                         .requestMatchers(
                                 "/css/**",
                                 "/js/**",
@@ -48,7 +46,6 @@ public class SecurityConfig {
                                 "/favicon.ico"
                         ).permitAll()
 
-                        // Public pages and portal pages
                         .requestMatchers(
                                 "/",
                                 "/login",
@@ -58,7 +55,6 @@ public class SecurityConfig {
                                 "/api/portal/**"
                         ).permitAll()
 
-                        // Everything else requires login
                         .anyRequest().authenticated()
                 )
 
@@ -67,8 +63,26 @@ public class SecurityConfig {
                         .loginProcessingUrl("/login")
                         .usernameParameter("username")
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/dashboard", true)
-                        .failureUrl("/login?error=true")
+
+                        .successHandler((request, response, authentication) -> {
+                            System.out.println("[PDTS LOGIN SUCCESS] username="
+                                    + authentication.getName());
+                            response.sendRedirect("/dashboard");
+                        })
+
+                        .failureHandler((request, response, exception) -> {
+                            String submittedUsername = request.getParameter("username");
+
+                            System.out.println("[PDTS LOGIN FAILURE] submitted_username="
+                                    + submittedUsername);
+                            System.out.println("[PDTS LOGIN FAILURE] exception_class="
+                                    + exception.getClass().getName());
+                            System.out.println("[PDTS LOGIN FAILURE] exception_message="
+                                    + exception.getMessage());
+
+                            response.sendRedirect("/login?error=true");
+                        })
+
                         .permitAll()
                 )
 
@@ -89,19 +103,60 @@ public class SecurityConfig {
         return username -> {
             String loginUsername = username == null ? "" : username.trim();
 
+            System.out.println("[PDTS USER LOOKUP] received_username=" + username);
+            System.out.println("[PDTS USER LOOKUP] trimmed_username=" + loginUsername);
+
             User user = userRepo.findByUsername(loginUsername)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + loginUsername));
+                    .orElseThrow(() -> {
+                        System.out.println("[PDTS USER LOOKUP] RESULT=NOT_FOUND username="
+                                + loginUsername);
+                        return new UsernameNotFoundException("User not found: " + loginUsername);
+                    });
+
+            System.out.println("[PDTS USER LOOKUP] RESULT=FOUND username="
+                    + user.getUsername());
+
+            System.out.println("[PDTS USER LOOKUP] active="
+                    + user.getIsActive());
+
+            String savedPassword = user.getPasswordHash() == null
+                    ? ""
+                    : user.getPasswordHash().trim();
+
+            String passwordType;
+
+            if (savedPassword.startsWith("{noop}")) {
+                passwordType = "NOOP";
+            } else if (savedPassword.startsWith("$2a$")
+                    || savedPassword.startsWith("$2b$")
+                    || savedPassword.startsWith("$2y$")) {
+                passwordType = "BCRYPT";
+            } else if (savedPassword.isBlank()) {
+                passwordType = "BLANK";
+            } else {
+                passwordType = "PLAIN_TEXT_OR_UNKNOWN";
+            }
+
+            System.out.println("[PDTS USER LOOKUP] password_type=" + passwordType);
 
             if (user.getIsActive() == null || user.getIsActive() == 0) {
+                System.out.println("[PDTS USER LOOKUP] RESULT=DISABLED username="
+                        + loginUsername);
                 throw new DisabledException("Account is deactivated.");
             }
 
-            String roleName = user.getRole() != null ? user.getRole().getRoleName() : "USER";
+            String roleName = user.getRole() != null
+                    ? user.getRole().getRoleName()
+                    : "USER";
+
             String authority = "ROLE_" + roleName.toUpperCase().replace(" ", "_");
+
+            System.out.println("[PDTS USER LOOKUP] role=" + roleName);
+            System.out.println("[PDTS USER LOOKUP] authority=" + authority);
 
             return new org.springframework.security.core.userdetails.User(
                     user.getUsername(),
-                    user.getPasswordHash(),
+                    savedPassword,
                     List.of(new SimpleGrantedAuthority(authority))
             );
         };
@@ -123,21 +178,37 @@ public class SecurityConfig {
 
             @Override
             public boolean matches(CharSequence rawPassword, String encodedPassword) {
-                String typed = rawPassword == null ? "" : rawPassword.toString().trim();
-                String saved = encodedPassword == null ? "" : encodedPassword.trim();
+                String typed = rawPassword == null
+                        ? ""
+                        : rawPassword.toString().trim();
 
-                // Supports demo seed passwords like {noop}Admin@2025
+                String saved = encodedPassword == null
+                        ? ""
+                        : encodedPassword.trim();
+
+                System.out.println("[PDTS PASSWORD CHECK] typed_length="
+                        + typed.length());
+
                 if (saved.startsWith("{noop}")) {
-                    return typed.equals(saved.substring(6));
+                    boolean result = typed.equals(saved.substring(6));
+                    System.out.println("[PDTS PASSWORD CHECK] type=NOOP result="
+                            + result);
+                    return result;
                 }
 
-                // Supports BCrypt passwords
-                if (saved.startsWith("$2a$") || saved.startsWith("$2b$") || saved.startsWith("$2y$")) {
-                    return bcrypt.matches(typed, saved);
+                if (saved.startsWith("$2a$")
+                        || saved.startsWith("$2b$")
+                        || saved.startsWith("$2y$")) {
+                    boolean result = bcrypt.matches(typed, saved);
+                    System.out.println("[PDTS PASSWORD CHECK] type=BCRYPT result="
+                            + result);
+                    return result;
                 }
 
-                // Compatibility for older local demo records saved as plain text
-                return typed.equals(saved);
+                boolean result = typed.equals(saved);
+                System.out.println("[PDTS PASSWORD CHECK] type=PLAIN_OR_UNKNOWN result="
+                        + result);
+                return result;
             }
         };
     }
