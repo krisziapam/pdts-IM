@@ -6,11 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDTS — Sign In</title>
 
+    <!-- Favicon / Browser Tab Icon -->
+    <link rel="icon" type="image/x-icon" th:href="@{/assets/favicon.ico}" href="/assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/assets/favicon-32x32.png}" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/assets/favicon-16x16.png}" href="/assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/assets/apple-touch-icon.png}" href="/assets/apple-touch-icon.png">
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+    <!-- Login CSS -->
     <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
 
@@ -30,6 +38,7 @@
     <div class="brand-panel">
         <div class="brand-content">
 
+            <!-- PUP Logo -->
             <img th:src="@{/assets/logo.png}" src="/assets/logo.png" alt="PUP Seal" class="pup-seal">
 
             <div class="brand-text">
@@ -71,7 +80,7 @@
     <div class="forms-panel">
         <div class="forms-inner">
 
-            <!-- Tab switcher -->
+            <!-- Tab Switcher -->
             <div class="tab-row">
                 <button class="tab active" id="tab-staff" onclick="switchTab('staff')">
                     Staff Login
@@ -110,11 +119,6 @@
                     <span th:text="${logoutMessage}">Signed out.</span>
                 </div>
 
-                <!-- IMPORTANT:
-                     CSRF hidden input was removed because CSRF is disabled in SecurityConfig.java.
-                     Do not add this back:
-                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                -->
                 <form th:action="@{/login}" method="post" novalidate>
 
                     <div class="field-group">
