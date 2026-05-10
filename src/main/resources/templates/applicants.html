@@ -1,19 +1,118 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Applicants</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
-<body><div class="shell">
-<aside class="sidebar"><div class="brand"><div class="brand-mark">PUP</div><div><div class="brand-title">Document Tracking System</div><span class="brand-subtitle">Open University System</span></div></div><nav class="nav"><a href="/dashboard">Dashboard</a><a class="active" href="/applicants">Applicants</a><a href="/applicants/new">New Applicant</a><a href="/requirements">Documents</a><a href="/users">Staff Accounts</a><a href="/logout">Logout</a></nav></aside>
-<main class="main">
-<header class="topbar"><div><h1>Applicants</h1><p class="lead">Search, view, and manage applicant records.</p></div><a class="btn gold" href="/applicants/new">New Applicant</a></header>
-<div th:if="${success}" class="flash success" th:text="${success}"></div><div th:if="${error}" class="flash error" th:text="${error}"></div>
-<form class="filters" method="get" action="/applicants">
-<input name="search" placeholder="Search name or email" th:value="${search}">
-<select name="category"><option value="">All categories</option><option th:each="c : ${categories}" th:value="${c['category_id']}" th:selected="${category == c['category_id']}" th:text="${c['category_name']}"></option></select>
-<select name="enrollment"><option value="">All enrollment</option><option value="continuing" th:selected="${enrollment == 'continuing'}">Continuing</option><option value="on_leave" th:selected="${enrollment == 'on_leave'}">On Leave</option></select>
-<input name="region" placeholder="Region" th:value="${region}"><button class="btn" type="submit">Filter</button><a class="btn secondary" href="/applicants">Clear</a>
-</form>
-<table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Contact</th><th>Category</th><th>Region</th><th>Status</th><th>Action</th></tr></thead><tbody>
-<tr th:if="${applicants.isEmpty()}"><td colspan="8">No applicant records yet.</td></tr>
-<tr th:each="a : ${applicants}"><td th:text="${a['applicant_id']}">1</td><td th:text="${a['applicant_first_name'] + ' ' + a['applicant_last_name']}">Name</td><td th:text="${a['applicant_email_address']}">email</td><td th:text="${a['applicant_contact_number']}">contact</td><td th:text="${a['category_name']}">cat</td><td th:text="${a['applicant_region']}">region</td><td><span class="badge" th:text="${a['applicant_enrollment_status']}">status</span></td><td><a class="btn secondary" th:href="@{/applicants/{id}(id=${a['applicant_id']})}">View</a></td></tr>
-</tbody></table>
-</main></div></body></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applicants</title>
+
+    <!-- Favicon / Browser Tab Icon -->
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
+
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/assets/favicon-32x32.png}" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/assets/favicon-16x16.png}" href="/assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/assets/apple-touch-icon.png}" href="/assets/apple-touch-icon.png">
+
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+<div class="shell">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">PUP</div>
+            <div>
+                <div class="brand-title">Document Tracking System</div>
+                <span class="brand-subtitle">Open University System</span>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <a href="/dashboard">Dashboard</a>
+            <a class="active" href="/applicants">Applicants</a>
+            <a href="/applicants/new">New Applicant</a>
+            <a href="/requirements">Documents</a>
+            <a href="/users">Staff Accounts</a>
+            <a href="/logout">Logout</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+
+        <header class="topbar">
+            <div>
+                <h1>Applicants</h1>
+                <p class="lead">Search, view, and manage applicant records.</p>
+            </div>
+
+            <a class="btn gold" href="/applicants/new">New Applicant</a>
+        </header>
+
+        <div th:if="${success}" class="flash success" th:text="${success}"></div>
+        <div th:if="${error}" class="flash error" th:text="${error}"></div>
+
+        <form class="filters" method="get" action="/applicants">
+            <input name="search" placeholder="Search name or email" th:value="${search}">
+
+            <select name="category">
+                <option value="">All categories</option>
+                <option th:each="c : ${categories}"
+                        th:value="${c['category_id']}"
+                        th:selected="${category == c['category_id']}"
+                        th:text="${c['category_name']}">
+                </option>
+            </select>
+
+            <select name="enrollment">
+                <option value="">All enrollment</option>
+                <option value="continuing" th:selected="${enrollment == 'continuing'}">Continuing</option>
+                <option value="on_leave" th:selected="${enrollment == 'on_leave'}">On Leave</option>
+            </select>
+
+            <input name="region" placeholder="Region" th:value="${region}">
+
+            <button class="btn" type="submit">Filter</button>
+            <a class="btn secondary" href="/applicants">Clear</a>
+        </form>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Contact</th>
+                <th>Category</th>
+                <th>Region</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:if="${applicants.isEmpty()}">
+                <td colspan="8">No applicant records yet.</td>
+            </tr>
+
+            <tr th:each="a : ${applicants}">
+                <td th:text="${a['applicant_id']}">1</td>
+                <td th:text="${a['applicant_first_name'] + ' ' + a['applicant_last_name']}">Name</td>
+                <td th:text="${a['applicant_email_address']}">email</td>
+                <td th:text="${a['applicant_contact_number']}">contact</td>
+                <td th:text="${a['category_name']}">cat</td>
+                <td th:text="${a['applicant_region']}">region</td>
+                <td>
+                    <span class="badge" th:text="${a['applicant_enrollment_status']}">status</span>
+                </td>
+                <td>
+                    <a class="btn secondary" th:href="@{/applicants/{id}(id=${a['applicant_id']})}">View</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </main>
+</div>
+</body>
+</html>
