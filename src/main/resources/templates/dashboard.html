@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDTS Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="shell">
+    <aside class="sidebar">
+        <div class="brand"><div class="brand-mark">PUP</div><div><div class="brand-title">Document Tracking System</div><span class="brand-subtitle">Open University System</span></div></div>
+        <nav class="nav">
+            <a class="active" href="/dashboard">Dashboard</a>
+            <a href="/applicants">Applicants</a>
+            <a href="/applicants/new">New Applicant</a>
+            <a href="/requirements">Documents</a>
+            <a href="/requirements/new">Upload Document</a>
+            <a href="/users">Staff Accounts</a>
+            <a href="/logs">Activity Logs</a>
+            <a href="/logout">Logout</a>
+        </nav>
+        <div class="sidebar-footer">Signed in as staff user</div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div><h1>PDTS Dashboard</h1><p class="lead">Complete system overview from PostgreSQL.</p></div>
+            <div class="actions"><a class="btn gold" href="/applicants/new">Add Applicant</a><a class="btn" href="/requirements/new">Upload Document</a></div>
+        </header>
+
+        <section class="grid stats">
+            <div class="card"><div class="stat-label">Applicants</div><div class="stat-number" th:text="${applicantCount}">0</div></div>
+            <div class="card"><div class="stat-label">Applications</div><div class="stat-number" th:text="${applicationCount}">0</div></div>
+            <div class="card"><div class="stat-label">Documents</div><div class="stat-number" th:text="${requirementCount}">0</div></div>
+            <div class="card"><div class="stat-label">Staff Users</div><div class="stat-number" th:text="${userCount}">0</div></div>
+            <div class="card"><div class="stat-label">Active Staff</div><div class="stat-number" th:text="${activeUserCount}">0</div></div>
+        </section>
+
+        <section class="grid stats">
+            <div class="card"><div class="stat-label">Pending</div><div class="stat-number" th:text="${pendingCount}">0</div></div>
+            <div class="card"><div class="stat-label">Under Review</div><div class="stat-number" th:text="${underReviewCount}">0</div></div>
+            <div class="card"><div class="stat-label">Verified</div><div class="stat-number" th:text="${verifiedCount}">0</div></div>
+            <div class="card"><div class="stat-label">Rejected</div><div class="stat-number" th:text="${rejectedCount}">0</div></div>
+            <div class="card"><div class="stat-label">For Resubmission</div><div class="stat-number" th:text="${resubmissionCount}">0</div></div>
+        </section>
+
+        <section class="section grid two-col">
+            <div>
+                <h2>Recent Applicants</h2>
+                <table>
+                    <thead><tr><th>Name</th><th>Email</th><th>Region</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                    <tr th:if="${recentApplicants.isEmpty()}"><td colspan="5">No applicants yet.</td></tr>
+                    <tr th:each="a : ${recentApplicants}">
+                        <td th:text="${a['applicant_first_name'] + ' ' + a['applicant_last_name']}">Name</td>
+                        <td th:text="${a['applicant_email_address']}">email</td>
+                        <td th:text="${a['applicant_region']}">region</td>
+                        <td><span class="badge" th:text="${a['applicant_enrollment_status']}">status</span></td>
+                        <td><a class="btn secondary" th:href="@{/applicants/{id}(id=${a['applicant_id']})}">View</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <h2>Recent Applications</h2>
+                <table>
+                    <thead><tr><th>Reference</th><th>Applicant</th><th>Program</th><th>Status</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${recentApplications.isEmpty()}"><td colspan="4">No applications yet.</td></tr>
+                    <tr th:each="ap : ${recentApplications}">
+                        <td th:text="${ap['application_reference_number']}">APP</td>
+                        <td th:text="${ap['applicant_first_name'] + ' ' + ap['applicant_last_name']}">Name</td>
+                        <td th:text="${ap['program_code']}">Program</td>
+                        <td><span class="badge info" th:text="${ap['application_status_name']}">Pending</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="topbar"><h2>Recent Documents</h2><a class="btn secondary" href="/requirements">Manage Documents</a></div>
+            <table>
+                <thead><tr><th>Tracking No.</th><th>Applicant</th><th>Type</th><th>File</th><th>Status</th><th>Uploaded</th></tr></thead>
+                <tbody>
+                <tr th:if="${recentRequirements.isEmpty()}"><td colspan="6">No uploaded documents yet.</td></tr>
+                <tr th:each="r : ${recentRequirements}">
+                    <td th:text="${r['requirement_tracking_no']}">DOC</td>
+                    <td th:text="${r['applicant_first_name'] + ' ' + r['applicant_last_name']}">Applicant</td>
+                    <td th:text="${r['requirement_type_name']}">Type</td>
+                    <td th:text="${r['requirement_file_name']}">file</td>
+                    <td><span class="badge" th:text="${r['requirement_status_name']}">Pending</span></td>
+                    <td th:text="${r['requirement_upload_date']}">date</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

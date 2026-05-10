@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Applicant Form</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><div class="shell">
+<aside class="sidebar"><div class="brand"><div class="brand-mark">PUP</div><div><div class="brand-title">Document Tracking System</div><span class="brand-subtitle">Open University System</span></div></div><nav class="nav"><a href="/dashboard">Dashboard</a><a href="/applicants">Applicants</a><a class="active" href="/applicants/new">New Applicant</a><a href="/requirements">Documents</a><a href="/logout">Logout</a></nav></aside>
+<main class="main">
+<header class="topbar"><div><h1 th:text="${mode == 'edit' ? 'Edit Applicant' : 'New Applicant'}">New Applicant</h1><p class="lead">Create or update applicant and application information.</p></div><a class="btn secondary" href="/applicants">Back</a></header>
+<div th:if="${error}" class="flash error" th:text="${error}"></div>
+<form class="card" method="post" th:action="${mode == 'edit' ? '/applicants/' + applicant['applicant_id'] + '/edit' : '/applicants'}">
+<h2>Personal Information</h2>
+<div class="form-grid">
+<label>First Name<input name="firstName" required th:value="${applicant != null ? applicant['applicant_first_name'] : ''}"></label>
+<label>Middle Name<input name="middleName" th:value="${applicant != null ? applicant['applicant_middle_name'] : ''}"></label>
+<label>Last Name<input name="lastName" required th:value="${applicant != null ? applicant['applicant_last_name'] : ''}"></label>
+<label>Suffix<input name="suffix" th:value="${applicant != null ? applicant['applicant_suffix'] : ''}"></label>
+<label>Sex<select name="sex"><option value="1" th:selected="${applicant == null or applicant['applicant_sex'] == 1}">Male</option><option value="2" th:selected="${applicant != null and applicant['applicant_sex'] == 2}">Female</option></select></label>
+<label>Civil Status<select name="civilStatus"><option value="1" th:selected="${applicant == null or applicant['applicant_civil_status'] == 1}">Single</option><option value="2" th:selected="${applicant != null and applicant['applicant_civil_status'] == 2}">Married</option></select></label>
+<label>Birth Date<input type="date" name="birthDate" required th:value="${applicant != null ? applicant['applicant_birth_date'] : ''}"></label>
+<label>Email<input type="email" name="email" required th:value="${applicant != null ? applicant['applicant_email_address'] : ''}"></label>
+<label>Contact Number<input name="contactNumber" required th:value="${applicant != null ? applicant['applicant_contact_number'] : ''}"></label>
+<label>Enrollment Status<select name="enrollmentStatus"><option value="continuing" th:selected="${applicant == null or applicant['applicant_enrollment_status'] == 'continuing'}">Continuing</option><option value="on_leave" th:selected="${applicant != null and applicant['applicant_enrollment_status'] == 'on_leave'}">On Leave</option></select></label>
+<label>Educational Background<select name="categoryId" required><option th:each="c : ${categories}" th:value="${c['category_id']}" th:selected="${applicant != null and applicant['educational_background_category_id'] == c['category_id']}" th:text="${c['category_name']}"></option></select></label>
+</div>
+<h2 class="section">Address</h2>
+<div class="form-grid">
+<label class="full">House No. / Street<input name="street" th:value="${applicant != null ? applicant['applicant_house_number_street'] : ''}"></label>
+<label>Barangay<input name="barangay" th:value="${applicant != null ? applicant['applicant_barangay'] : ''}"></label>
+<label>City / Municipality<input name="city" th:value="${applicant != null ? applicant['applicant_city_municipality'] : ''}"></label>
+<label>Province<input name="province" th:value="${applicant != null ? applicant['applicant_province'] : ''}"></label>
+<label>Region<input name="region" th:value="${applicant != null ? applicant['applicant_region'] : ''}"></label>
+<label>ZIP Code<input name="zipCode" th:value="${applicant != null ? applicant['applicant_zip_code'] : ''}"></label>
+</div>
+<div th:if="${mode != 'edit'}">
+<h2 class="section">Initial Application</h2>
+<div class="form-grid">
+<label>Program<select name="programId" required><option th:each="p : ${programs}" th:value="${p['program_id']}" th:text="${p['program_code'] + ' — ' + p['program_name']}"></option></select></label>
+<label>Campus<select name="campusId" required><option th:each="c : ${campuses}" th:value="${c['campus_id']}" th:text="${c['campus_name']}"></option></select></label>
+<label>Application Status<select name="applicationStatusId" required><option th:each="s : ${applicationStatuses}" th:value="${s['application_status_id']}" th:text="${s['application_status_name']}"></option></select></label>
+<label>Semester<input name="semester" value="First Semester" required></label>
+<label>Academic Year<input name="academicYear" th:value="${defaultAcademicYear}" required></label>
+</div>
+</div>
+<div class="section actions"><button class="btn" type="submit">Save Applicant</button><a class="btn secondary" href="/applicants">Cancel</a></div>
+</form>
+</main></div></body></html>

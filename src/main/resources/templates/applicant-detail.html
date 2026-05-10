@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Applicant Detail</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><div class="shell">
+<aside class="sidebar"><div class="brand"><div class="brand-mark">PUP</div><div><div class="brand-title">Document Tracking System</div><span class="brand-subtitle">Open University System</span></div></div><nav class="nav"><a href="/dashboard">Dashboard</a><a class="active" href="/applicants">Applicants</a><a href="/requirements">Documents</a><a href="/logout">Logout</a></nav></aside>
+<main class="main">
+<header class="topbar"><div><h1 th:text="${applicant['applicant_first_name'] + ' ' + applicant['applicant_last_name']}">Applicant</h1><p class="lead">Applicant profile, applications, and documents.</p></div><div class="actions"><a class="btn secondary" href="/applicants">Back</a><a class="btn" th:href="@{/applicants/{id}/edit(id=${applicant['applicant_id']})}">Edit</a><a class="btn gold" href="/requirements/new">Upload Document</a></div></header>
+<div th:if="${success}" class="flash success" th:text="${success}"></div>
+<section class="card"><h2>Applicant Information</h2><div class="detail-grid">
+<div class="detail"><span>ID</span><strong th:text="${applicant['applicant_id']}">1</strong></div>
+<div class="detail"><span>Email</span><strong th:text="${applicant['applicant_email_address']}">email</strong></div>
+<div class="detail"><span>Contact</span><strong th:text="${applicant['applicant_contact_number']}">contact</strong></div>
+<div class="detail"><span>Category</span><strong th:text="${applicant['category_name']}">category</strong></div>
+<div class="detail"><span>Enrollment</span><strong th:text="${applicant['applicant_enrollment_status']}">status</strong></div>
+<div class="detail"><span>Region</span><strong th:text="${applicant['applicant_region']}">region</strong></div>
+<div class="detail full"><span>Address</span><strong th:text="${applicant['applicant_house_number_street'] + ', ' + applicant['applicant_barangay'] + ', ' + applicant['applicant_city_municipality'] + ', ' + applicant['applicant_province']}">address</strong></div>
+</div></section>
+<section class="section"><h2>Applications</h2><table><thead><tr><th>Reference</th><th>Program</th><th>Campus</th><th>Status</th><th>Date</th></tr></thead><tbody><tr th:if="${applications.isEmpty()}"><td colspan="5">No applications yet.</td></tr><tr th:each="a : ${applications}"><td th:text="${a['application_reference_number']}">APP</td><td th:text="${a['program_code'] + ' — ' + a['program_name']}">Program</td><td th:text="${a['campus_name']}">Campus</td><td><span class="badge info" th:text="${a['application_status_name']}">Pending</span></td><td th:text="${a['application_date']}">Date</td></tr></tbody></table></section>
+<section class="section"><h2>Documents</h2><table><thead><tr><th>Tracking</th><th>Type</th><th>File</th><th>Status</th><th>Uploaded</th><th>Remarks</th></tr></thead><tbody><tr th:if="${requirements.isEmpty()}"><td colspan="6">No documents uploaded yet.</td></tr><tr th:each="r : ${requirements}"><td th:text="${r['requirement_tracking_no']}">DOC</td><td th:text="${r['requirement_type_name']}">Type</td><td th:text="${r['requirement_file_name']}">file</td><td><span class="badge" th:text="${r['requirement_status_name']}">Status</span></td><td th:text="${r['requirement_upload_date']}">date</td><td th:text="${r['requirement_remarks']}">remarks</td></tr></tbody></table></section>
+</main></div></body></html>

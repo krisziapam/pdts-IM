@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Upload Document</title><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body><div class="shell">
+<aside class="sidebar"><div class="brand"><div class="brand-mark">PUP</div><div><div class="brand-title">Document Tracking System</div><span class="brand-subtitle">Open University System</span></div></div><nav class="nav"><a href="/dashboard">Dashboard</a><a href="/applicants">Applicants</a><a href="/requirements">Documents</a><a class="active" href="/requirements/new">Upload Document</a><a href="/logout">Logout</a></nav></aside>
+<main class="main"><header class="topbar"><div><h1>Upload Document</h1><p class="lead">Attach a document to an existing application.</p></div><a class="btn secondary" href="/requirements">Back</a></header>
+<div th:if="${error}" class="flash error" th:text="${error}"></div>
+<form class="card" method="post" action="/requirements" enctype="multipart/form-data"><div class="form-grid">
+<label class="full">Application<select name="applicationId" required><option value="">Select application</option><option th:each="a : ${applications}" th:value="${a['application_id']}" th:text="${a['application_reference_number'] + ' — ' + a['applicant_first_name'] + ' ' + a['applicant_last_name']}"></option></select></label>
+<label class="full">Requirement Type<select name="requirementTypeId" required><option value="">Select document type</option><option th:each="t : ${types}" th:value="${t['type_id']}" th:text="${t['requirement_type_name']}"></option></select></label>
+<label class="full">File<input type="file" name="file" required></label>
+</div><div class="section actions"><button class="btn" type="submit">Upload Document</button><a class="btn secondary" href="/requirements">Cancel</a></div></form>
+</main></div></body></html>

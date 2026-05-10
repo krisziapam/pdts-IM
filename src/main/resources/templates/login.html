@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<!-- Path: src/main/resources/templates/login.html -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDTS — Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+
+<!-- Dynamic Animated Background -->
+<div class="bg-scene">
+    <div class="bg-layer layer-1"></div>
+    <div class="bg-layer layer-2"></div>
+    <div class="bg-layer layer-3"></div>
+    <div class="particles" id="particles"></div>
+</div>
+
+<div class="page-wrap">
+
+    <!-- ── LEFT PANEL — Branding ── -->
+    <div class="brand-panel">
+        <div class="brand-content">
+            <img th:src="@{/assets/logo.png}" src="/assets/logo.png" alt="PUP Seal" class="pup-seal">
+            <div class="brand-text">
+                <p class="brand-super">Polytechnic University of the Philippines</p>
+                <h1 class="brand-name">Open University System</h1>
+                <p class="brand-sub">Office of the University Registrar</p>
+            </div>
+            <div class="system-badge">
+                <span class="badge-dot"></span>
+                <span>PDTS — Document Tracking System</span>
+            </div>
+            <div class="brand-stats">
+                <div class="stat"><span class="stat-num">5</span><span class="stat-label">Curriculum Types</span></div>
+                <div class="stat-divider"></div>
+                <div class="stat"><span class="stat-num">12</span><span class="stat-label">Document Types</span></div>
+                <div class="stat-divider"></div>
+                <div class="stat"><span class="stat-num">5</span><span class="stat-label">Status Stages</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── RIGHT PANEL — Forms ── -->
+    <div class="forms-panel">
+        <div class="forms-inner">
+
+            <!-- Tab switcher -->
+            <div class="tab-row">
+                <button class="tab active" id="tab-staff" onclick="switchTab('staff')">Staff Login</button>
+                <button class="tab" id="tab-track" onclick="switchTab('track')">Track My Documents</button>
+            </div>
+
+            <!-- ── Staff Login Form ── -->
+            <div class="form-card" id="form-staff">
+                <div class="form-header">
+                    <h2>Welcome back</h2>
+                    <p>Sign in with your employee credentials</p>
+                </div>
+
+                <div th:if="${loginError}" class="alert alert-error">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span th:text="${loginError}">Invalid credentials.</span>
+                </div>
+                <div th:if="${logoutMessage}" class="alert alert-info">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span th:text="${logoutMessage}">Signed out.</span>
+                </div>
+
+                <form action="/login" method="post" novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                    <div class="field-group">
+                        <input type="text" id="username" name="username" class="field-input" placeholder=" " autocomplete="username" required>
+                        <label for="username" class="field-label">Employee ID</label>
+                        <span class="field-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </span>
+                    </div>
+
+                    <div class="field-group">
+                        <input type="password" id="password" name="password" class="field-input" placeholder=" " autocomplete="current-password" required>
+                        <label for="password" class="field-label">Password</label>
+                        <span class="field-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
+                        <button type="button" class="toggle-pw" onclick="togglePassword()">
+                            <svg id="eye-show" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg id="eye-hide" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <span>Sign In</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                </form>
+
+                <p class="form-footer">For account issues, contact your system administrator.</p>
+            </div>
+
+            <!-- ── Token Search Form ── -->
+            <div class="form-card hidden" id="form-track">
+                <div class="form-header">
+                    <h2>Track Your Documents</h2>
+                    <p>Enter your reference number and access token</p>
+                </div>
+
+                <div class="alert alert-info" id="track-info" style="display:none"></div>
+                <div class="alert alert-error" id="track-error" style="display:none"></div>
+
+                <div id="track-form-body">
+                    <div class="field-group">
+                        <input type="text" id="ref-no" class="field-input" placeholder=" " style="font-family:monospace;">
+                        <label for="ref-no" class="field-label">Reference No. (STU-YYYY-NNNNN)</label>
+                        <span class="field-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </span>
+                    </div>
+
+                    <div class="field-group">
+                        <input type="text" id="token-val" class="field-input" placeholder=" " style="font-family:monospace;letter-spacing:.05em;">
+                        <label for="token-val" class="field-label">Access Token (from your email)</label>
+                        <span class="field-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                        </span>
+                    </div>
+
+                    <button type="button" class="btn-primary" onclick="verifyToken()">
+                        <span>Check Status</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </button>
+                </div>
+
+                <p class="form-footer">Lost your token? Contact the OUS Registrar's Office for a re-send.</p>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script th:src="@{/js/login.js}"></script>
+</body>
+</html>
