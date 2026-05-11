@@ -178,7 +178,7 @@
 
                 <label>
                     Region
-                    <select name="region" required>
+                    <select name="region" required autocomplete="off">
                         <option value="" disabled th:selected="${applicant == null or applicant['applicant_region'] == null or applicant['applicant_region'] == ''}">
                             Select region
                         </option>
