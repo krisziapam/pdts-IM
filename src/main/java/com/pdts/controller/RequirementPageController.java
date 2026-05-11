@@ -13,7 +13,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Year;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -29,22 +30,40 @@ public class RequirementPageController {
 
     @GetMapping("/requirements")
     public String list(@RequestParam(required = false) Integer statusId, Model model) {
-        String sql = """
-                SELECT r.requirement_id, r.requirement_tracking_no, r.requirement_file_name, r.requirement_upload_date,
-                       r.requirement_status_id, rt.requirement_type_name, rs.requirement_status_name,
-                       a.application_reference_number, ap.applicant_id, ap.applicant_first_name, ap.applicant_last_name,
+        StringBuilder sql = new StringBuilder("""
+                SELECT r.requirement_id,
+                       r.requirement_tracking_no,
+                       r.requirement_file_name,
+                       r.requirement_upload_date,
+                       r.requirement_status_id,
+                       rt.requirement_type_name,
+                       rs.requirement_status_name,
+                       a.application_reference_number,
+                       ap.applicant_id,
+                       ap.applicant_first_name,
+                       ap.applicant_last_name,
                        ap.applicant_email_address
                 FROM requirement r
                 JOIN requirement_type rt ON rt.type_id = r.requirement_type_id
                 JOIN requirement_status rs ON rs.status_id = r.requirement_status_id
                 JOIN application a ON a.application_id = r.application_id
                 JOIN applicant ap ON ap.applicant_id = a.applicant_id
-                """ + (statusId == null ? "" : " WHERE r.requirement_status_id = ? ") +
-                " ORDER BY r.requirement_upload_date DESC, r.requirement_id DESC";
+                WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
+                """);
 
-        model.addAttribute("requirements", statusId == null ? jdbc.queryForList(sql) : jdbc.queryForList(sql, statusId));
+        List<Object> params = new ArrayList<>();
+
+        if (statusId != null) {
+            sql.append(" AND r.requirement_status_id = ? ");
+            params.add(statusId);
+        }
+
+        sql.append(" ORDER BY r.requirement_upload_date DESC, r.requirement_id DESC");
+
+        model.addAttribute("requirements", jdbc.queryForList(sql.toString(), params.toArray()));
         addLookups(model);
         model.addAttribute("statusId", statusId);
+
         return "requirements";
     }
 
@@ -59,30 +78,68 @@ public class RequirementPageController {
                          @RequestParam Integer requirementTypeId,
                          @RequestParam MultipartFile file,
                          RedirectAttributes ra) {
+        Path savedFilePath = null;
+
         try {
             if (file == null || file.isEmpty()) {
                 throw new IllegalArgumentException("Please choose a file to upload.");
             }
 
+            Integer activeApplicationCount = jdbc.queryForObject("""
+                    SELECT COUNT(*)
+                    FROM application a
+                    JOIN applicant ap ON ap.applicant_id = a.applicant_id
+                    WHERE a.application_id = ?
+                      AND COALESCE(ap.applicant_is_deleted, 0) = 0
+                    """, Integer.class, applicationId);
+
+            if (activeApplicationCount == null || activeApplicationCount == 0) {
+                throw new IllegalArgumentException("Selected application does not belong to an active applicant.");
+            }
+
             String originalName = file.getOriginalFilename() == null ? "document.pdf" : file.getOriginalFilename();
             String ext = originalName.contains(".") ? originalName.substring(originalName.lastIndexOf('.')) : ".pdf";
             String savedName = UUID.randomUUID() + ext;
+
             Path uploadDir = Paths.get(pdtsProperties.getUploadDir());
             Files.createDirectories(uploadDir);
-            Path filePath = uploadDir.resolve(savedName);
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            savedFilePath = uploadDir.resolve(savedName);
+            Files.copy(file.getInputStream(), savedFilePath, StandardCopyOption.REPLACE_EXISTING);
 
             String trackingNo = nextTrackingNo();
+
             jdbc.update("""
-                    INSERT INTO requirement (application_id, requirement_type_id, requirement_status_id,
-                                             requirement_tracking_no, requirement_file_name, requirement_image_path,
-                                             requirement_uploaded_by_user_id)
+                    INSERT INTO requirement (
+                        application_id,
+                        requirement_type_id,
+                        requirement_status_id,
+                        requirement_tracking_no,
+                        requirement_file_name,
+                        requirement_image_path,
+                        requirement_uploaded_by_user_id
+                    )
                     VALUES (?, ?, 1, ?, ?, ?, 1)
-                    """, applicationId, requirementTypeId, trackingNo, originalName, filePath.toString());
+                    """,
+                    applicationId,
+                    requirementTypeId,
+                    trackingNo,
+                    originalName,
+                    savedFilePath.toString()
+            );
 
             ra.addFlashAttribute("success", "Document uploaded. Tracking number: " + trackingNo);
             return "redirect:/requirements";
+
         } catch (Exception e) {
+            if (savedFilePath != null) {
+                try {
+                    Files.deleteIfExists(savedFilePath);
+                } catch (Exception ignored) {
+                    // Ignore cleanup error and show the original upload error.
+                }
+            }
+
             ra.addFlashAttribute("error", "Upload failed: " + e.getMessage());
             return "redirect:/requirements/new";
         }
@@ -94,6 +151,12 @@ public class RequirementPageController {
                                @RequestParam(required = false) Integer rejectionReasonId,
                                @RequestParam(required = false) String remarks,
                                RedirectAttributes ra) {
+
+        if (!requirementBelongsToActiveApplicant(id)) {
+            ra.addFlashAttribute("error", "Status cannot be updated because this requirement belongs to a deleted applicant.");
+            return "redirect:/requirements";
+        }
+
         if (statusId == 3) {
             jdbc.update("""
                     UPDATE requirement
@@ -103,6 +166,7 @@ public class RequirementPageController {
                         requirement_processed_at = CURRENT_TIMESTAMP
                     WHERE requirement_id = ?
                     """, id);
+
         } else if (statusId == 4) {
             jdbc.update("""
                     UPDATE requirement
@@ -114,6 +178,7 @@ public class RequirementPageController {
                         requirement_processed_at = CURRENT_TIMESTAMP
                     WHERE requirement_id = ?
                     """, rejectionReasonId, id);
+
         } else if (statusId == 5) {
             jdbc.update("""
                     UPDATE requirement
@@ -123,6 +188,7 @@ public class RequirementPageController {
                         requirement_processed_at = CURRENT_TIMESTAMP
                     WHERE requirement_id = ?
                     """, remarks, id);
+
         } else {
             jdbc.update("""
                     UPDATE requirement
@@ -137,23 +203,62 @@ public class RequirementPageController {
         return "redirect:/requirements";
     }
 
+    private boolean requirementBelongsToActiveApplicant(Integer requirementId) {
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*)
+                FROM requirement r
+                JOIN application a ON a.application_id = r.application_id
+                JOIN applicant ap ON ap.applicant_id = a.applicant_id
+                WHERE r.requirement_id = ?
+                  AND COALESCE(ap.applicant_is_deleted, 0) = 0
+                """, Integer.class, requirementId);
+
+        return count != null && count > 0;
+    }
+
     private void addLookups(Model model) {
-        model.addAttribute("statuses", jdbc.queryForList("SELECT status_id, requirement_status_name FROM requirement_status ORDER BY status_id"));
-        model.addAttribute("types", jdbc.queryForList("SELECT type_id, requirement_type_name FROM requirement_type WHERE type_is_active = 1 ORDER BY requirement_type_name"));
-        model.addAttribute("rejectionReasons", jdbc.queryForList("SELECT rejection_reason_id, rejection_reason_name FROM rejection_reason WHERE rejection_reason_is_active = 1 ORDER BY rejection_reason_name"));
-       model.addAttribute("applications", jdbc.queryForList("""
-        SELECT a.application_id, a.application_reference_number,
-               ap.applicant_first_name, ap.applicant_last_name
-        FROM application a
-        JOIN applicant ap ON ap.applicant_id = a.applicant_id
-        WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
-        ORDER BY a.application_id DESC
-        """));
+        model.addAttribute("statuses", jdbc.queryForList("""
+                SELECT status_id, requirement_status_name
+                FROM requirement_status
+                ORDER BY status_id
+                """));
+
+        model.addAttribute("types", jdbc.queryForList("""
+                SELECT type_id, requirement_type_name
+                FROM requirement_type
+                WHERE type_is_active = 1
+                ORDER BY requirement_type_name
+                """));
+
+        model.addAttribute("rejectionReasons", jdbc.queryForList("""
+                SELECT rejection_reason_id, rejection_reason_name
+                FROM rejection_reason
+                WHERE rejection_reason_is_active = 1
+                ORDER BY rejection_reason_name
+                """));
+
+        model.addAttribute("applications", jdbc.queryForList("""
+                SELECT a.application_id,
+                       a.application_reference_number,
+                       ap.applicant_first_name,
+                       ap.applicant_last_name
+                FROM application a
+                JOIN applicant ap ON ap.applicant_id = a.applicant_id
+                WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
+                ORDER BY a.application_id DESC
+                """));
     }
 
     private String nextTrackingNo() {
-        Integer next = jdbc.queryForObject("SELECT COALESCE(MAX(requirement_id), 0) + 1 FROM requirement", Integer.class);
-        if (next == null) next = 1;
+        Integer next = jdbc.queryForObject("""
+                SELECT COALESCE(MAX(requirement_id), 0) + 1
+                FROM requirement
+                """, Integer.class);
+
+        if (next == null) {
+            next = 1;
+        }
+
         return "DOC-" + Year.now().getValue() + "-" + String.format("%04d", next);
     }
 }
