@@ -1,5 +1,6 @@
 package com.pdts.controller;
 
+import com.pdts.service.AuditLogService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,9 +16,11 @@ import java.util.Map;
 public class UserPageController {
 
     private final JdbcTemplate jdbc;
+    private final AuditLogService auditLogService;
 
-    public UserPageController(JdbcTemplate jdbc) {
+    public UserPageController(JdbcTemplate jdbc, AuditLogService auditLogService) {
         this.jdbc = jdbc;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping("/users")
@@ -53,44 +56,101 @@ public class UserPageController {
 
     @PostMapping("/users")
     public String create(@RequestParam Map<String, String> form, RedirectAttributes ra) {
-        jdbc.update("""
-                INSERT INTO app_user (
-                    user_last_name,
-                    user_first_name,
-                    user_middle_name,
-                    role_id,
-                    user_email_address,
-                    user_password_hash,
-                    user_username,
-                    user_is_active
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-                """,
-                required(form, "lastName"),
-                required(form, "firstName"),
-                blankToNull(form.get("middleName")),
-                Integer.parseInt(required(form, "roleId")),
-                required(form, "email"),
-                "{noop}" + required(form, "password"),
-                required(form, "username")
-        );
+        try {
+            Integer userId = jdbc.queryForObject("""
+                    INSERT INTO app_user (
+                        user_last_name,
+                        user_first_name,
+                        user_middle_name,
+                        role_id,
+                        user_email_address,
+                        user_password_hash,
+                        user_username,
+                        user_is_active
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+                    RETURNING user_id
+                    """,
+                    Integer.class,
+                    required(form, "lastName"),
+                    required(form, "firstName"),
+                    blankToNull(form.get("middleName")),
+                    Integer.parseInt(required(form, "roleId")),
+                    required(form, "email"),
+                    "{noop}" + required(form, "password"),
+                    required(form, "username")
+            );
 
-        ra.addFlashAttribute("success", "Staff account created.");
+            auditLogService.log(
+                    "CREATE_ACCOUNT",
+                    "app_user",
+                    userId != null ? userId.longValue() : null,
+                    "Created staff account for " + required(form, "firstName") + " " + required(form, "lastName"),
+                    null,
+                    "Username: " + required(form, "username")
+            );
+
+            ra.addFlashAttribute("success", "Staff account created.");
+
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Failed to create staff account: " + e.getMessage());
+        }
+
         return "redirect:/users";
     }
 
     @PostMapping("/users/{id}/toggle")
     public String toggle(@PathVariable Integer id, RedirectAttributes ra) {
-        jdbc.update("""
-                UPDATE app_user
-                SET user_is_active = CASE
-                    WHEN user_is_active = 1 THEN 0
-                    ELSE 1
-                END
-                WHERE user_id = ?
-                """, id);
+        try {
+            Map<String, Object> userInfo = jdbc.queryForMap("""
+                    SELECT 
+                        user_id,
+                        user_username,
+                        user_first_name,
+                        user_last_name,
+                        user_is_active
+                    FROM app_user
+                    WHERE user_id = ?
+                    """, id);
 
-        ra.addFlashAttribute("success", "Staff account status updated.");
+            Integer oldActiveStatus = ((Number) userInfo.get("user_is_active")).intValue();
+
+            jdbc.update("""
+                    UPDATE app_user
+                    SET user_is_active = CASE
+                        WHEN user_is_active = 1 THEN 0
+                        ELSE 1
+                    END
+                    WHERE user_id = ?
+                    """, id);
+
+            Integer newActiveStatus = jdbc.queryForObject("""
+                    SELECT user_is_active
+                    FROM app_user
+                    WHERE user_id = ?
+                    """, Integer.class, id);
+
+            String fullName = userInfo.get("user_first_name") + " " + userInfo.get("user_last_name");
+            String username = String.valueOf(userInfo.get("user_username"));
+
+            String oldValue = oldActiveStatus == 1 ? "Active" : "Inactive";
+            String newValue = newActiveStatus != null && newActiveStatus == 1 ? "Active" : "Inactive";
+
+            auditLogService.log(
+                    "UPDATE_USER_STATUS",
+                    "app_user",
+                    id.longValue(),
+                    "Updated staff account status for " + fullName + " (" + username + ") from " + oldValue + " to " + newValue,
+                    oldValue,
+                    newValue
+            );
+
+            ra.addFlashAttribute("success", "Staff account status updated.");
+
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Failed to update staff account status: " + e.getMessage());
+        }
+
         return "redirect:/users";
     }
 
