@@ -75,10 +75,29 @@
         <section id="content">
 
             <div class="stats-grid four">
-                <article class="stat-card red"><div class="stat-label">Total Applicants</div><div class="stat-value" th:text="${applicantCount}">0</div><div class="stat-sub">Registered this AY</div></article>
-                <article class="stat-card gold"><div class="stat-label">Pending Documents</div><div class="stat-value" th:text="${pendingCount}">0</div><div class="stat-sub">Awaiting processing</div></article>
-                <article class="stat-card"><div class="stat-label">Cleared Students</div><div class="stat-value" th:text="${verifiedCount}">0</div><div class="stat-sub">Requirements complete</div></article>
-                <article class="stat-card"><div class="stat-label">Emails Sent Today</div><div class="stat-value">0</div><div class="stat-sub">Email module pending</div></article>
+                <a class="stat-card stat-card-link red" th:href="@{/applicants}" href="/applicants" aria-label="View all applicants">
+                    <div class="stat-label">Total Applicants</div>
+                    <div class="stat-value" th:text="${applicantCount}">0</div>
+                    <div class="stat-sub">Click to view applicant records</div>
+                </a>
+
+                <a class="stat-card stat-card-link gold" th:href="@{/requirements(statusId=1)}" href="/requirements?statusId=1" aria-label="View pending documents">
+                    <div class="stat-label">Pending Documents</div>
+                    <div class="stat-value" th:text="${pendingCount}">0</div>
+                    <div class="stat-sub">Click to view pending submissions</div>
+                </a>
+
+                <a class="stat-card stat-card-link" th:href="@{/requirements(statusId=3)}" href="/requirements?statusId=3" aria-label="View cleared students">
+                    <div class="stat-label">Cleared Students</div>
+                    <div class="stat-value" th:text="${verifiedCount}">0</div>
+                    <div class="stat-sub">Click to view verified documents</div>
+                </a>
+
+                <a class="stat-card stat-card-link" th:href="@{/email-notifications}" href="/email-notifications" aria-label="View email notifications">
+                    <div class="stat-label">Emails Sent Today</div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-sub">Click to view email log</div>
+                </a>
             </div>
 
             <div class="dash-grid">
@@ -124,14 +143,6 @@
                         </div>
                     </section>
                 </aside>
-            </div>
-
-            <div class="stats-grid five compact mt-lg">
-                <article class="stat-card"><div class="stat-label">Applications</div><div class="stat-value" th:text="${applicationCount}">0</div></article>
-                <article class="stat-card"><div class="stat-label">Documents</div><div class="stat-value" th:text="${requirementCount}">0</div></article>
-                <article class="stat-card"><div class="stat-label">Under Review</div><div class="stat-value" th:text="${underReviewCount}">0</div></article>
-                <article class="stat-card"><div class="stat-label">Rejected</div><div class="stat-value" th:text="${rejectedCount}">0</div></article>
-                <article class="stat-card"><div class="stat-label">For Resubmission</div><div class="stat-value" th:text="${resubmissionCount}">0</div></article>
             </div>
 
         </section>
