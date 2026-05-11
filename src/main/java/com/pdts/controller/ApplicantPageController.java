@@ -33,42 +33,43 @@ public class ApplicantPageController {
                        @RequestParam(required = false) String category,
                        @RequestParam(required = false) String enrollment,
                        @RequestParam(required = false) String region,
-                       @RequestParam(required = false) String program,
                        Model model) {
 
         StringBuilder sql = new StringBuilder("""
-                SELECT ap.applicant_id,
-                       ap.applicant_first_name,
-                       ap.applicant_last_name,
-                       ap.applicant_email_address,
-                       ap.applicant_contact_number,
-                       ap.applicant_region,
-                       ap.applicant_enrollment_status,
-                       e.category_name,
-                       ap.applicant_created_at,
-                       latest_app.application_reference_number,
-                       latest_app.program_id,
-                       latest_app.program_code,
-                       latest_app.program_name,
-                       COALESCE(
-                           REPLACE(latest_app.application_reference_number, 'APP-', 'STU-'),
-                           'STU-' || ap.applicant_id
-                       ) AS student_tracking_no
+                SELECT
+                    ap.applicant_id,
+                    ap.applicant_first_name,
+                    ap.applicant_last_name,
+                    ap.applicant_email_address,
+                    ap.applicant_contact_number,
+                    ap.applicant_region,
+                    ap.applicant_enrollment_status,
+                    ap.applicant_created_at,
+                    e.category_id,
+                    e.category_name,
+                    latest_app.application_reference_number,
+                    latest_app.program_code,
+                    latest_app.program_name,
+                    COALESCE(
+                        REPLACE(latest_app.application_reference_number, 'APP-', 'STU-'),
+                        'STU-' || ap.applicant_id
+                    ) AS student_tracking_no
                 FROM applicant ap
                 JOIN educational_background_category e
-                  ON e.category_id = ap.educational_background_category_id
+                    ON e.category_id = ap.educational_background_category_id
                 LEFT JOIN LATERAL (
-                    SELECT a.application_id,
-                           a.application_reference_number,
-                           a.program_id,
-                           p.program_code,
-                           p.program_name
+                    SELECT
+                        a.application_id,
+                        a.application_reference_number,
+                        p.program_code,
+                        p.program_name
                     FROM application a
-                    JOIN program p ON p.program_id = a.program_id
+                    LEFT JOIN program p
+                        ON p.program_id = a.program_id
                     WHERE a.applicant_id = ap.applicant_id
                     ORDER BY a.application_date DESC, a.application_id DESC
                     LIMIT 1
-                ) latest_app ON true
+                ) latest_app ON TRUE
                 WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
                 """);
 
@@ -80,9 +81,9 @@ public class ApplicantPageController {
                         LOWER(ap.applicant_first_name) LIKE LOWER(?)
                         OR LOWER(ap.applicant_last_name) LIKE LOWER(?)
                         OR LOWER(ap.applicant_email_address) LIKE LOWER(?)
+                        OR LOWER(COALESCE(ap.applicant_contact_number, '')) LIKE LOWER(?)
                         OR LOWER(COALESCE(latest_app.application_reference_number, '')) LIKE LOWER(?)
-                        OR LOWER(COALESCE(latest_app.program_code, '')) LIKE LOWER(?)
-                        OR LOWER(COALESCE(latest_app.program_name, '')) LIKE LOWER(?)
+                        OR LOWER(COALESCE(REPLACE(latest_app.application_reference_number, 'APP-', 'STU-'), '')) LIKE LOWER(?)
                     )
                     """);
 
@@ -97,22 +98,17 @@ public class ApplicantPageController {
 
         if (category != null && !category.isBlank()) {
             sql.append(" AND ap.educational_background_category_id = ?");
-            params.add(Integer.parseInt(category));
+            params.add(category.trim());
         }
 
         if (enrollment != null && !enrollment.isBlank()) {
             sql.append(" AND ap.applicant_enrollment_status = ?");
-            params.add(enrollment);
+            params.add(enrollment.trim());
         }
 
         if (region != null && !region.isBlank()) {
             sql.append(" AND LOWER(ap.applicant_region) LIKE LOWER(?)");
             params.add("%" + region.trim() + "%");
-        }
-
-        if (program != null && !program.isBlank()) {
-            sql.append(" AND latest_app.program_id = ?");
-            params.add(Integer.parseInt(program));
         }
 
         sql.append(" ORDER BY ap.applicant_created_at DESC, ap.applicant_id DESC");
@@ -125,17 +121,10 @@ public class ApplicantPageController {
                 ORDER BY category_name
                 """));
 
-        model.addAttribute("programs", jdbc.queryForList("""
-                SELECT program_id, program_name, program_code
-                FROM program
-                ORDER BY program_name
-                """));
-
         model.addAttribute("search", search);
         model.addAttribute("category", category);
         model.addAttribute("enrollment", enrollment);
         model.addAttribute("region", region);
-        model.addAttribute("program", program);
 
         return "applicants";
     }
@@ -190,7 +179,14 @@ public class ApplicantPageController {
                     Date.valueOf(required(form, "birthDate")),
                     required(form, "email"),
                     required(form, "contactNumber"),
-                    intValue(form, "categoryId", 1),
+
+                    /*
+                     * IMPORTANT:
+                     * categoryId can be values like COL-004.
+                     * Do not parse it as Integer.
+                     */
+                    required(form, "categoryId"),
+
                     required(form, "enrollmentStatus")
             );
 
@@ -237,17 +233,26 @@ public class ApplicantPageController {
         model.addAttribute("applicant", one("""
                 SELECT ap.*, e.category_name
                 FROM applicant ap
-                JOIN educational_background_category e ON e.category_id = ap.educational_background_category_id
+                JOIN educational_background_category e
+                    ON e.category_id = ap.educational_background_category_id
                 WHERE ap.applicant_id = ?
                   AND COALESCE(ap.applicant_is_deleted, 0) = 0
                 """, id));
 
         model.addAttribute("applications", jdbc.queryForList("""
-                SELECT a.*, p.program_name, p.program_code, c.campus_name, ast.application_status_name
+                SELECT
+                    a.*,
+                    p.program_name,
+                    p.program_code,
+                    c.campus_name,
+                    ast.application_status_name
                 FROM application a
-                JOIN program p ON p.program_id = a.program_id
-                JOIN campus c ON c.campus_id = a.campus_id
-                JOIN application_status ast ON ast.application_status_id = a.application_status_id
+                JOIN program p
+                    ON p.program_id = a.program_id
+                JOIN campus c
+                    ON c.campus_id = a.campus_id
+                JOIN application_status ast
+                    ON ast.application_status_id = a.application_status_id
                 WHERE a.applicant_id = ?
                 ORDER BY a.application_date DESC, a.application_id DESC
                 """, id));
@@ -255,9 +260,12 @@ public class ApplicantPageController {
         model.addAttribute("requirements", jdbc.queryForList("""
                 SELECT r.*, rt.requirement_type_name, rs.requirement_status_name
                 FROM requirement r
-                JOIN requirement_type rt ON rt.type_id = r.requirement_type_id
-                JOIN requirement_status rs ON rs.status_id = r.requirement_status_id
-                JOIN application a ON a.application_id = r.application_id
+                JOIN requirement_type rt
+                    ON rt.type_id = r.requirement_type_id
+                JOIN requirement_status rs
+                    ON rs.status_id = r.requirement_status_id
+                JOIN application a
+                    ON a.application_id = r.application_id
                 WHERE a.applicant_id = ?
                 ORDER BY r.requirement_upload_date DESC
                 """, id));
@@ -321,7 +329,14 @@ public class ApplicantPageController {
                 Date.valueOf(required(form, "birthDate")),
                 required(form, "email"),
                 required(form, "contactNumber"),
-                intValue(form, "categoryId", 1),
+
+                /*
+                 * IMPORTANT:
+                 * categoryId can be values like COL-004.
+                 * Do not parse it as Integer.
+                 */
+                required(form, "categoryId"),
+
                 required(form, "enrollmentStatus"),
                 id
         );
@@ -336,7 +351,8 @@ public class ApplicantPageController {
         List<String> documentPaths = jdbc.queryForList("""
                 SELECT r.requirement_image_path
                 FROM requirement r
-                JOIN application a ON a.application_id = r.application_id
+                JOIN application a
+                    ON a.application_id = r.application_id
                 WHERE a.applicant_id = ?
                 """, String.class, id);
 
