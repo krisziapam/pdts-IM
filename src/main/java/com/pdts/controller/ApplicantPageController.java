@@ -1,5 +1,7 @@
 package com.pdts.controller;
 
+import com.pdts.service.AuditLogService;
+
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
@@ -23,10 +25,12 @@ import java.util.Map;
 public class ApplicantPageController {
 
     private final JdbcTemplate jdbc;
+private final AuditLogService auditLogService;
 
-    public ApplicantPageController(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
-    }
+public ApplicantPageController(JdbcTemplate jdbc, AuditLogService auditLogService) {
+    this.jdbc = jdbc;
+    this.auditLogService = auditLogService;
+}
 
     @GetMapping("/applicants")
     public String list(@RequestParam(required = false) String search,
@@ -213,8 +217,17 @@ public class ApplicantPageController {
                     referenceNo
             );
 
-            ra.addFlashAttribute("success", "Applicant created with application reference " + referenceNo + ".");
-            return "redirect:/applicants/" + applicantId;
+           auditLogService.log(
+        "CREATE_STUDENT",
+        "applicant",
+        applicantId.longValue(),
+        "Created profile for " + required(form, "firstName") + " " + required(form, "lastName"),
+        null,
+        "Application reference: " + referenceNo
+);
+
+ra.addFlashAttribute("success", "Applicant created with application reference " + referenceNo + ".");
+return "redirect:/applicants/" + applicantId;
 
         } catch (DuplicateKeyException e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -291,7 +304,7 @@ public class ApplicantPageController {
                          @RequestParam Map<String, String> form,
                          RedirectAttributes ra) {
 
-        jdbc.update("""
+   int updated = jdbc.update("""
                 UPDATE applicant SET
                     applicant_first_name = ?,
                     applicant_middle_name = ?,
@@ -341,13 +354,33 @@ public class ApplicantPageController {
                 id
         );
 
-        ra.addFlashAttribute("success", "Applicant updated.");
-        return "redirect:/applicants/" + id;
+       if (updated > 0) {
+    auditLogService.log(
+            "UPDATE_STUDENT",
+            "applicant",
+            id.longValue(),
+            "Updated profile for " + required(form, "firstName") + " " + required(form, "lastName"),
+            null,
+            "Enrollment status: " + required(form, "enrollmentStatus")
+    );
+}
+
+ra.addFlashAttribute("success", "Applicant updated.");
+return "redirect:/applicants/" + id;
     }
 
     @Transactional
     @PostMapping("/applicants/{id}/delete")
     public String delete(@PathVariable Integer id, RedirectAttributes ra) {
+        List<String> applicantNames = jdbc.queryForList("""
+        SELECT applicant_first_name || ' ' || applicant_last_name
+        FROM applicant
+        WHERE applicant_id = ?
+        """, String.class, id);
+
+String applicantName = applicantNames.isEmpty()
+        ? "Applicant ID " + id
+        : applicantNames.get(0);
         List<String> documentPaths = jdbc.queryForList("""
                 SELECT r.requirement_image_path
                 FROM requirement r
@@ -372,11 +405,22 @@ public class ApplicantPageController {
                   AND COALESCE(applicant_is_deleted, 0) = 0
                 """, id);
 
-        if (updated > 0) {
-            int filesDeleted = deleteUploadedFiles(documentPaths);
-            ra.addFlashAttribute("success", "Applicant deleted from the active list. Deleted "
-                    + documentsDeleted + " related document record(s) and "
-                    + filesDeleted + " uploaded file(s).");
+       if (updated > 0) {
+    int filesDeleted = deleteUploadedFiles(documentPaths);
+
+    auditLogService.log(
+            "DELETE_STUDENT",
+            "applicant",
+            id.longValue(),
+            "Deleted profile for " + applicantName,
+            null,
+            "Deleted " + documentsDeleted + " document record(s) and " + filesDeleted + " uploaded file(s)."
+    );
+
+    ra.addFlashAttribute("success", "Applicant deleted from the active list. Deleted "
+            + documentsDeleted + " related document record(s) and "
+            + filesDeleted + " uploaded file(s).");
+           
         } else {
             ra.addFlashAttribute("error", "Applicant was not found or was already deleted.");
         }
