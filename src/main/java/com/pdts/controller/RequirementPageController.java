@@ -29,10 +29,13 @@ public class RequirementPageController {
 private final PdtsProperties pdtsProperties;
 private final AuditLogService auditLogService;
 
-    public RequirementPageController(JdbcTemplate jdbc, PdtsProperties pdtsProperties) {
-        this.jdbc = jdbc;
-        this.pdtsProperties = pdtsProperties;
-    }
+  public RequirementPageController(JdbcTemplate jdbc,
+                                 PdtsProperties pdtsProperties,
+                                 AuditLogService auditLogService) {
+    this.jdbc = jdbc;
+    this.pdtsProperties = pdtsProperties;
+    this.auditLogService = auditLogService;
+}
 
     @GetMapping("/requirements")
     public String list(@RequestParam(required = false) Integer statusId, Model model) {
