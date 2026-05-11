@@ -35,7 +35,7 @@ public class UserPageController {
         return "user-form";
     }
 
-    @PostMapping("/users")
+@PostMapping("/users/{id}/toggle")
     public String create(@RequestParam Map<String, String> form, RedirectAttributes ra) {
         jdbc.update("""
                 INSERT INTO app_user (user_last_name, user_first_name, user_middle_name, role_id,
