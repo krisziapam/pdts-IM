@@ -18,20 +18,57 @@
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
 
     <style>
-        /* Page-specific update for Document Submissions modal style */
+        /* =========================================================
+           DOCUMENT SUBMISSIONS PAGE - MATCH TARGET MOCKUP
+           ========================================================= */
+
         .requirements-page .topbar-right {
             display: flex;
             align-items: center;
             gap: 14px;
         }
 
+        .requirements-page #topbar .btn {
+            min-height: 36px;
+            height: 36px;
+            padding: 0 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
         .requirements-page .document-card {
             padding: 24px;
+            border-radius: 14px;
+        }
+
+        .requirements-page .document-card .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .requirements-page .document-card .card-title {
+            margin: 0;
+            color: #8B0000;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .requirements-page .receive-document-btn {
+            min-height: 36px;
+            padding: 0 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: nowrap;
         }
 
         .requirements-page .document-toolbar {
             display: grid;
-            grid-template-columns: minmax(320px, 1fr) 220px 230px auto auto;
+            grid-template-columns: minmax(360px, 1fr) 220px 240px;
             gap: 12px;
             align-items: center;
             margin-bottom: 18px;
@@ -41,42 +78,169 @@
         .requirements-page .document-toolbar .filter-select {
             width: 100%;
             min-height: 44px;
+            border: 1px solid #ddd6cf;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 14px;
+            color: #2c2323;
+            background: #ffffff;
+            outline: none;
         }
 
-        .requirements-page .document-table th {
+        .requirements-page .document-toolbar .search-input:focus,
+        .requirements-page .document-toolbar .filter-select:focus {
+            border-color: #8B0000;
+            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08);
+        }
+
+        .requirements-page .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .requirements-page .document-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        .requirements-page .document-table thead th {
+            background: #f5eded;
+            color: #8B0000;
             padding: 12px 14px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
+            text-align: left;
+            white-space: nowrap;
         }
 
-        .requirements-page .document-table td {
+        .requirements-page .document-table tbody td {
             padding: 12px 14px;
+            border-bottom: 1px solid #f0ebe8;
+            vertical-align: middle;
+            font-size: 14px;
+            color: #2c2323;
         }
 
-        .requirements-page .compact-action {
-            display: grid;
-            grid-template-columns: minmax(140px, 1fr) minmax(140px, 1fr);
-            gap: 8px;
+        .requirements-page .document-table tbody tr:hover {
+            background: #fcfaf9;
+        }
+
+        .requirements-page .tracking-badge {
+            display: inline-flex;
             align-items: center;
+            gap: 6px;
+            min-width: 150px;
+            min-height: 30px;
+            padding: 0 10px;
+            border-radius: 7px;
+            background: #fff7df;
+            border: 1px solid #d7b95b;
+            color: #765600;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: nowrap;
         }
 
-        .requirements-page .compact-action input {
-            grid-column: 1 / 2;
+        .requirements-page .tracking-badge::before {
+            content: "📄";
+            font-size: 13px;
         }
 
-        .requirements-page .compact-action button {
-            grid-column: 2 / 3;
-            justify-self: start;
+        .requirements-page .td-name {
+            font-weight: 700;
+            color: #1f1515;
+            white-space: nowrap;
+        }
+
+        .requirements-page .td-muted {
+            color: #7a7171;
         }
 
         .requirements-page .photo-chip {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 26px;
-            height: 26px;
+            width: 24px;
+            height: 24px;
             border-radius: 8px;
             background: #f5eded;
             color: #8B0000;
             font-size: 13px;
+        }
+
+        .requirements-page .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 24px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .requirements-page .badge-status-received {
+            background: #cdeedc;
+            color: #1f7a52;
+        }
+
+        .requirements-page .badge-status-pending {
+            background: #fff0c7;
+            color: #a86200;
+        }
+
+        .requirements-page .badge-status-rejected {
+            background: #ffdede;
+            color: #b03030;
+        }
+
+        .requirements-page .badge-status-resubmission {
+            background: #dfe3ff;
+            color: #4c4ac8;
+        }
+
+        .requirements-page .remarks-cell {
+            max-width: 220px;
+            color: #7a7171;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .requirements-page .action-status-form {
+            margin: 0;
+        }
+
+        .requirements-page .action-select {
+            width: 100%;
+            min-width: 180px;
+            min-height: 34px;
+            border: 1px solid #ddd6cf;
+            border-radius: 8px;
+            background: #ffffff;
+            padding: 6px 10px;
+            color: #2c2323;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            outline: none;
+        }
+
+        .requirements-page .action-select:focus {
+            border-color: #8B0000;
+            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08);
+        }
+
+        .requirements-page .empty-state {
+            text-align: center;
+            padding: 28px;
+            color: #8a7f7f;
+            font-weight: 600;
         }
 
         /* Floating modal */
@@ -261,6 +425,15 @@
                 grid-template-columns: 1fr;
             }
 
+            .requirements-page .document-card .card-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .requirements-page .receive-document-btn {
+                width: 100%;
+            }
+
             .receive-grid {
                 grid-template-columns: 1fr;
             }
@@ -274,16 +447,6 @@
             }
 
             .receive-actions .btn {
-                width: 100%;
-            }
-
-            .requirements-page .compact-action {
-                grid-template-columns: 1fr;
-            }
-
-            .requirements-page .compact-action input,
-            .requirements-page .compact-action button {
-                grid-column: auto;
                 width: 100%;
             }
         }
@@ -345,9 +508,7 @@
             </div>
             <div class="topbar-right">
                 <span class="ay-label">AY 2025–2026 · 1st Semester</span>
-                <button class="btn btn-primary" type="button" data-open-receive-modal>
-                    + Receive Document
-                </button>
+                <a class="btn btn-primary" th:href="@{/applicants/new}" href="/applicants/new">+ New Applicant</a>
             </div>
         </header>
 
@@ -359,38 +520,38 @@
             <section class="card document-card">
                 <div class="card-header">
                     <h2 class="card-title">Document Submissions</h2>
+                    <button class="btn btn-primary receive-document-btn" type="button" data-open-receive-modal>
+                        + Receive Document
+                    </button>
                 </div>
 
-                <form class="search-bar document-toolbar" method="get" th:action="@{/requirements}">
+                <div class="document-toolbar">
                     <input class="search-input"
+                           id="documentSearchInput"
                            type="search"
-                           placeholder="Search tracking #, student name, or document type..."
-                           data-table-search>
+                           placeholder="Search tracking #, student name, or document type...">
 
-                    <select class="filter-select" name="statusId">
+                    <select class="filter-select" id="documentStatusFilter">
                         <option value="">All Status</option>
                         <option th:each="s : ${statuses}"
-                                th:value="${s['status_id']}"
-                                th:selected="${statusId != null && statusId == s['status_id']}"
+                                th:value="${s['requirement_status_name']}"
                                 th:text="${s['requirement_status_name']}">
                             Status
                         </option>
                     </select>
 
-                    <select class="filter-select" data-table-type>
+                    <select class="filter-select" id="documentTypeFilter">
                         <option value="">All Document Types</option>
                         <option th:each="t : ${types}"
+                                th:value="${t['requirement_type_name']}"
                                 th:text="${t['requirement_type_name']}">
                             Type
                         </option>
                     </select>
-
-                    <button class="btn btn-primary" type="submit">Filter</button>
-                    <a class="btn btn-outline" th:href="@{/requirements}" href="/requirements">Clear</a>
-                </form>
+                </div>
 
                 <div class="table-wrap">
-                    <table class="document-table" data-filterable-table>
+                    <table class="document-table" id="documentTable">
                         <thead>
                         <tr>
                             <th>Tracking #</th>
@@ -405,60 +566,77 @@
                         </thead>
 
                         <tbody>
-                        <tr th:if="${requirements.isEmpty()}">
+                        <tr th:if="${#lists.isEmpty(requirements)}">
                             <td colspan="8" class="empty-state">No document submissions found.</td>
                         </tr>
 
-                        <tr th:each="r : ${requirements}">
+                        <tr th:each="r : ${requirements}"
+                            class="document-row"
+                            th:attr="data-status=${r['requirement_status_name']},data-type=${r['requirement_type_name']}">
                             <td>
-                                <span class="tracking-badge" th:text="${r['requirement_tracking_no']}">DOC</span>
+                                <span class="tracking-badge"
+                                      th:text="${r['requirement_tracking_no']}">
+                                    DOC-2025-00001
+                                </span>
                             </td>
 
                             <td>
-    <div class="td-name"
-         th:text="${r['applicant_last_name'] + ', ' + r['applicant_first_name']}">
-        Dela Cruz, Juan S.
-    </div>
-</td>
+                                <div class="td-name"
+                                     th:text="${r['applicant_last_name'] + ', ' + r['applicant_first_name']}">
+                                    Dela Cruz, Juan S.
+                                </div>
+                            </td>
 
-                            <td th:text="${r['requirement_type_name']}">Document Type</td>
+                            <td th:text="${r['requirement_type_name']}">
+                                PSA Birth Certificate
+                            </td>
 
-                            <td class="td-muted" th:text="${r['requirement_upload_date']}">Date</td>
-
-                            <td>
-                                <span class="photo-chip" th:title="${r['requirement_file_name']}">▣</span>
+                            <td class="td-muted"
+                                th:text="${r['requirement_upload_date'] != null ? #strings.substring(r['requirement_upload_date'].toString(), 0, 10) : '—'}">
+                                2025-04-01
                             </td>
 
                             <td>
-                                <span class="badge" th:text="${r['requirement_status_name']}">Status</span>
+                                <span class="photo-chip" th:title="${r['requirement_file_name']}">📷</span>
                             </td>
 
-                            <td class="td-muted" th:text="${r['requirement_file_name']}">File</td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${
+                                        r['requirement_status_name'] == 'Received' ? ' badge-status-received' :
+                                        r['requirement_status_name'] == 'Pending' ? ' badge-status-pending' :
+                                        r['requirement_status_name'] == 'Rejected' ? ' badge-status-rejected' :
+                                        ' badge-status-resubmission'
+                                      }"
+                                      th:text="${r['requirement_status_name']}">
+                                    Pending
+                                </span>
+                            </td>
+
+                            <td class="remarks-cell"
+                                th:title="${(r['requirement_remarks'] != null && r['requirement_remarks'] != '') ? r['requirement_remarks'] : ((r['remarks'] != null && r['remarks'] != '') ? r['remarks'] : '—')}"
+                                th:text="${(r['requirement_remarks'] != null && r['requirement_remarks'] != '') ? r['requirement_remarks'] : ((r['remarks'] != null && r['remarks'] != '') ? r['remarks'] : '—')}">
+                                —
+                            </td>
 
                             <td>
-                                <form class="inline-form compact-action"
+                                <form class="action-status-form"
                                       method="post"
                                       th:action="@{/requirements/{id}/status(id=${r['requirement_id']})}">
-                                    <select name="statusId" aria-label="Update status">
+                                    <select class="action-select"
+                                            name="statusId"
+                                            aria-label="Update status"
+                                            onchange="this.form.submit()">
                                         <option th:each="s : ${statuses}"
                                                 th:value="${s['status_id']}"
                                                 th:selected="${r['requirement_status_id'] == s['status_id']}"
                                                 th:text="${s['requirement_status_name']}">
-                                            Status
+                                            Pending
                                         </option>
                                     </select>
 
-                                    <select name="rejectionReasonId" aria-label="Reason">
-                                        <option value="">Reason</option>
-                                        <option th:each="rr : ${rejectionReasons}"
-                                                th:value="${rr['rejection_reason_id']}"
-                                                th:text="${rr['rejection_reason_name']}">
-                                            Reason
-                                        </option>
-                                    </select>
-
-                                    <input name="remarks" placeholder="Remarks">
-                                    <button class="btn btn-outline btn-sm" type="submit">Save</button>
+                                    <input type="hidden" name="rejectionReasonId" value="">
+                                    <input type="hidden" name="remarks" value="">
                                 </form>
                             </td>
                         </tr>
@@ -480,17 +658,16 @@
         </div>
 
         <form class="receive-form"
-      th:action="@{/requirements}"
-      action="/requirements"
-      method="post"
-      enctype="multipart/form-data">
+              th:action="@{/requirements}"
+              action="/requirements"
+              method="post"
+              enctype="multipart/form-data">
 
             <div class="form-group full">
                 <label for="modalApplicationId">Student (Applicant)</label>
                 <select id="modalApplicationId" name="applicationId" required>
                     <option value="">Select student / application</option>
 
-                    <!-- Uses applications if your controller provides it -->
                     <option th:if="${applications != null}"
                             th:each="a : ${applications}"
                             th:value="${a['application_id']}"
@@ -579,6 +756,11 @@
         const filePreview = document.querySelector("[data-file-preview]");
         const uploadDate = document.getElementById("modalUploadDate");
 
+        const searchInput = document.getElementById("documentSearchInput");
+        const statusFilter = document.getElementById("documentStatusFilter");
+        const typeFilter = document.getElementById("documentTypeFilter");
+        const rows = document.querySelectorAll(".document-row");
+
         if (uploadDate && !uploadDate.value) {
             const today = new Date();
             const yyyy = today.getFullYear();
@@ -630,9 +812,11 @@
             fileInput.addEventListener("change", function () {
                 if (fileInput.files && fileInput.files.length > 0) {
                     const file = fileInput.files[0];
+
                     if (fileLabel) {
                         fileLabel.textContent = "📷 " + file.name;
                     }
+
                     if (filePreview) {
                         filePreview.textContent = "Selected file: " + file.name;
                     }
@@ -640,11 +824,42 @@
                     if (fileLabel) {
                         fileLabel.textContent = "📷 Click to upload photo proof of document";
                     }
+
                     if (filePreview) {
                         filePreview.textContent = "";
                     }
                 }
             });
+        }
+
+        function filterDocumentRows() {
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+            const selectedStatus = statusFilter ? statusFilter.value.trim().toLowerCase() : "";
+            const selectedType = typeFilter ? typeFilter.value.trim().toLowerCase() : "";
+
+            rows.forEach(function (row) {
+                const rowText = row.textContent.toLowerCase();
+                const rowStatus = (row.getAttribute("data-status") || "").toLowerCase();
+                const rowType = (row.getAttribute("data-type") || "").toLowerCase();
+
+                const matchesSearch = !query || rowText.includes(query);
+                const matchesStatus = !selectedStatus || rowStatus === selectedStatus;
+                const matchesType = !selectedType || rowType === selectedType;
+
+                row.style.display = matchesSearch && matchesStatus && matchesType ? "" : "none";
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener("input", filterDocumentRows);
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener("change", filterDocumentRows);
+        }
+
+        if (typeFilter) {
+            typeFilter.addEventListener("change", filterDocumentRows);
         }
     });
 </script>
