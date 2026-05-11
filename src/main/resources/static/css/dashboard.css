@@ -183,3 +183,201 @@ textarea { min-height: 90px; resize: vertical; }
 @media (max-width: 1180px) { .stats-grid.five { grid-template-columns: repeat(3, minmax(0, 1fr)); } .stats-grid.four, .dash-grid, .two-col, .settings-grid { grid-template-columns: 1fr; } .role-grid { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { #app { flex-direction: column; } #sidebar { position: static; width: 100%; height: auto; } #main { margin-left: 0; } #topbar { align-items: flex-start; padding: 16px; flex-direction: column; } #content { padding: 16px; } .stats-grid.four, .stats-grid.five { grid-template-columns: repeat(2, minmax(0, 1fr)); } .detail-grid { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .stats-grid.four, .stats-grid.five { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr; } .search-input, .search-input.compact, .filter-select { width: 100%; } .form-actions, .topbar-right { width: 100%; justify-content: stretch; } .btn { width: 100%; } .inline-form { flex-direction: column; align-items: stretch; } .inline-form select, .inline-form input { width: 100%; } .stepper { display: none; } }
+
+/* =========================================================
+   APPLICANT FORM - MODAL STYLE MATCH
+   ========================================================= */
+
+.modal-form-page {
+    background: #f5eded;
+    min-height: 100vh;
+    font-family: 'DM Sans', Arial, sans-serif;
+}
+
+.modal-form-backdrop {
+    min-height: 100vh;
+    padding: 42px 24px;
+    background: rgba(43, 23, 23, 0.35);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.modal-form-card {
+    width: 100%;
+    max-width: 1090px;
+    max-height: 92vh;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 34px 38px 34px;
+    box-shadow: 0 18px 50px rgba(36, 17, 17, 0.16);
+}
+
+.modal-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 26px;
+}
+
+.modal-form-header h1 {
+    margin: 0;
+    color: #8B0000;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.modal-close-btn {
+    text-decoration: none;
+    color: #adadad;
+    font-size: 38px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+.modal-close-btn:hover {
+    color: #8B0000;
+}
+
+.modal-applicant-form {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+}
+
+.modal-section {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.modal-section-title {
+    color: #C8A951;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eadfca;
+}
+
+.modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 22px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    color: #8B1E12;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    min-height: 56px;
+    border: 1px solid #ddd6cf;
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 14px 18px;
+    font-size: 15px;
+    color: #2c2323;
+    outline: none;
+    box-shadow: none;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: #888;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #8B0000;
+    box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08);
+}
+
+.modal-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    padding-top: 8px;
+}
+
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 122px;
+    height: 52px;
+    padding: 0 24px;
+    border: 1.5px solid #8B1E12;
+    border-radius: 16px;
+    background: #fff;
+    color: #8B1E12;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.btn-outline:hover {
+    background: #faf5f2;
+}
+
+.btn-primary {
+    min-width: 200px;
+    height: 52px;
+    border: none;
+    border-radius: 16px;
+    background: #8B1E12;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: #74170f;
+}
+
+@media (max-width: 900px) {
+    .modal-form-card {
+        padding: 24px 20px 24px;
+        max-height: 94vh;
+    }
+
+    .modal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full-width {
+        grid-column: auto;
+    }
+
+    .modal-form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-outline,
+    .btn-primary {
+        width: 100%;
+    }
+}
