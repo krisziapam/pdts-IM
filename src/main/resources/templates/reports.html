@@ -10,8 +10,275 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
+
+    <style>
+        .reports-page #topbar {
+            height: 60px;
+        }
+
+        .reports-page .topbar-title {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .reports-page .reports-card {
+            padding: 28px 30px 30px;
+        }
+
+        .reports-page .reports-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .reports-page .reports-title {
+            margin: 0;
+            color: #8B0000;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .reports-page .export-btn {
+            background: #C8A951;
+            color: #1a0a0a;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 22px;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 14px;
+        }
+
+        .reports-page .export-btn:hover {
+            background: #b8992f;
+        }
+
+        .reports-page .report-filter-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .reports-page .filter-label {
+            color: #8B0000;
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-right: 4px;
+        }
+
+        .reports-page .report-filter-row select {
+            min-width: 180px;
+            height: 52px;
+            border: 1px solid #ddd6cf;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #333;
+            padding: 0 18px;
+            font-size: 15px;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            outline: none;
+        }
+
+        .reports-page .report-filter-row select:focus {
+            border-color: #8B0000;
+            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08);
+        }
+
+        .reports-page .report-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .reports-page .report-stat-card {
+            background: #ffffff;
+            border: 1px solid rgba(139, 0, 0, 0.12);
+            border-radius: 12px;
+            padding: 24px 28px;
+            min-height: 120px;
+        }
+
+        .reports-page .report-stat-card.red {
+            border-left: 4px solid #8B0000;
+        }
+
+        .reports-page .report-stat-card.gold {
+            border-left: 4px solid #C8A951;
+        }
+
+        .reports-page .report-stat-label {
+            color: #756868;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .reports-page .report-stat-value {
+            font-family: 'Crimson Pro', Georgia, serif;
+            color: #8B0000;
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .reports-page .report-breakdown-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .reports-page .breakdown-title {
+            margin: 0 0 18px;
+            color: #8B0000;
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .reports-page .progress-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .reports-page .progress-row {
+            display: grid;
+            gap: 6px;
+        }
+
+        .reports-page .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+
+        .reports-page .progress-count {
+            color: #777;
+            font-weight: 600;
+        }
+
+        .reports-page .progress-track {
+            width: 100%;
+            height: 10px;
+            background: #eee8e5;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .reports-page .progress-fill {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background: #047857;
+        }
+
+        .reports-page .progress-fill.als {
+            background: #8a124c;
+        }
+
+        .reports-page .progress-fill.college {
+            background: #4c1d95;
+        }
+
+        .reports-page .progress-fill.old {
+            background: #374151;
+        }
+
+        .reports-page .progress-fill.shs {
+            background: #4338ca;
+        }
+
+        .reports-page .progress-fill.region {
+            background: #a00000;
+        }
+
+        @media (max-width: 1100px) {
+            .reports-page .report-stat-grid,
+            .reports-page .report-breakdown-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .reports-page .report-filter-row {
+                align-items: stretch;
+            }
+
+            .reports-page .report-filter-row select {
+                flex: 1 1 220px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .reports-page .reports-card {
+                padding: 22px 18px;
+            }
+
+            .reports-page .reports-card-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .reports-page .export-btn {
+                width: 100%;
+            }
+
+            .reports-page .report-filter-row {
+                flex-direction: column;
+            }
+
+            .reports-page .report-filter-row select {
+                width: 100%;
+            }
+        }
+
+        /* Export PDF / Print */
+        @media print {
+            body {
+                background: #ffffff !important;
+            }
+
+            #sidebar,
+            #topbar,
+            .no-print {
+                display: none !important;
+            }
+
+            #main {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+
+            #content {
+                padding: 0 !important;
+            }
+
+            .reports-page .reports-card {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 20px !important;
+            }
+
+            .reports-page .report-filter-row select {
+                border: 1px solid #ddd !important;
+            }
+
+            @page {
+                size: landscape;
+                margin: 12mm;
+            }
+        }
+    </style>
 </head>
-<body>
+
+<body class="reports-page">
 <div id="app">
     <aside id="sidebar">
         <div class="sb-logo">
@@ -27,21 +294,21 @@
 
         <nav class="sb-section" aria-label="Main navigation">
             <div class="sb-section-label">Main</div>
-            <a class="sb-nav-item " th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
-            <a class="sb-nav-item " th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Students / Applicants</a>
-            <a class="sb-nav-item " th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Document Submissions</a>
+            <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
+            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Students / Applicants</a>
+            <a class="sb-nav-item" th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Document Submissions</a>
         </nav>
 
         <nav class="sb-section" aria-label="Management navigation">
             <div class="sb-section-label">Management</div>
-            <a class="sb-nav-item " th:href="@{/email-notifications}" href="/email-notifications"><span class="icon">✉</span>Email Notifications</a>
-            <a class="sb-nav-item " th:href="@{/tracking-lookup}" href="/tracking-lookup"><span class="icon">⌕</span>Tracking Lookup</a>
+            <a class="sb-nav-item" th:href="@{/email-notifications}" href="/email-notifications"><span class="icon">✉</span>Email Notifications</a>
+            <a class="sb-nav-item" th:href="@{/tracking-lookup}" href="/tracking-lookup"><span class="icon">⌕</span>Tracking Lookup</a>
             <a class="sb-nav-item active" th:href="@{/reports}" href="/reports"><span class="icon">▤</span>Reports &amp; Filters</a>
         </nav>
 
         <nav class="sb-section" aria-label="System navigation">
             <div class="sb-section-label">System</div>
-            <a class="sb-nav-item " th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Audit Logs</a>
+            <a class="sb-nav-item" th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Audit Logs</a>
             <a class="sb-nav-item" th:href="@{/users/new}" href="/users/new"><span class="icon">＋</span>Create Account</a>
             <a class="sb-nav-item" th:href="@{/users}" href="/users"><span class="icon">⚙</span>Settings</a>
         </nav>
@@ -61,8 +328,7 @@
     <main id="main">
         <header id="topbar">
             <div>
-                <div class="topbar-title">Reports & Filters</div>
-                <div class="topbar-subtitle">Summary filters and printable analytics view.</div>
+                <div class="topbar-title">Reports &amp; Filters</div>
             </div>
             <div class="topbar-right">
                 <span class="ay-label">AY 2025–2026 · 1st Semester</span>
@@ -71,40 +337,166 @@
         </header>
 
         <section id="content">
-            <section class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Reports &amp; Analytics</h2>
-                    <button class="btn btn-gold" type="button">Export PDF</button>
+            <section class="card reports-card" id="reportsPrintableArea">
+                <div class="reports-card-header">
+                    <h2 class="reports-title">Reports &amp; Analytics</h2>
+                    <button class="export-btn no-print" type="button" data-export-pdf>Export PDF</button>
                 </div>
-                <div class="search-bar">
-                    <span class="td-name" style="align-self:center;color:var(--pup-red);">Filter by:</span>
-                    <select class="filter-select"><option>All Regions</option></select>
-                    <select class="filter-select"><option>All Curricula</option></select>
-                    <select class="filter-select"><option>All Programs</option></select>
-                    <select class="filter-select"><option>All Status</option></select>
+
+                <div class="report-filter-row no-print">
+                    <span class="filter-label">Filter by:</span>
+
+                    <select aria-label="Filter by region">
+                        <option>All Regions</option>
+                        <option>NCR</option>
+                        <option>Region IV-A</option>
+                        <option>Region III</option>
+                        <option>Region II</option>
+                    </select>
+
+                    <select aria-label="Filter by curriculum">
+                        <option>All Curricula</option>
+                        <option>TVET</option>
+                        <option>ALS</option>
+                        <option>College Undergrad</option>
+                        <option>Old Curriculum</option>
+                        <option>Senior High School</option>
+                    </select>
+
+                    <select aria-label="Filter by program">
+                        <option>All Programs</option>
+                        <option>BSIT</option>
+                        <option>BSOA</option>
+                        <option>BSTM</option>
+                        <option>BSENT</option>
+                    </select>
+
+                    <select aria-label="Filter by status">
+                        <option>All Status</option>
+                        <option>Continuing</option>
+                        <option>Dismissed</option>
+                        <option>On Leave</option>
+                        <option>Cleared</option>
+                    </select>
                 </div>
-                <div class="stats-grid four">
-                    <div class="stat-card red"><div class="stat-label">Filtered Students</div><div class="stat-value">—</div></div>
-                    <div class="stat-card gold"><div class="stat-label">Cleared</div><div class="stat-value">—</div></div>
-                    <div class="stat-card"><div class="stat-label">Pending Requirements</div><div class="stat-value">—</div></div>
-                    <div class="stat-card"><div class="stat-label">Generated Reports</div><div class="stat-value">—</div></div>
+
+                <div class="report-stat-grid">
+                    <div class="report-stat-card red">
+                        <div class="report-stat-label">Filtered Students</div>
+                        <div class="report-stat-value">248</div>
+                    </div>
+
+                    <div class="report-stat-card gold">
+                        <div class="report-stat-label">Cleared</div>
+                        <div class="report-stat-value">62</div>
+                    </div>
+
+                    <div class="report-stat-card">
+                        <div class="report-stat-label">Pending Requirements</div>
+                        <div class="report-stat-value">183</div>
+                    </div>
                 </div>
-                <div class="two-col">
+
+                <div class="report-breakdown-grid">
                     <div>
-                        <h3 class="card-title mb-lg">By Curriculum Type</h3>
+                        <h3 class="breakdown-title">By Curriculum Type</h3>
+
                         <div class="progress-list">
-                            <div class="progress-row"><div><span>TVET</span><strong>0 students</strong></div><div class="bar"><i style="width:40%"></i></div></div>
-                            <div class="progress-row"><div><span>ALS</span><strong>0 students</strong></div><div class="bar"><i class="purple" style="width:35%"></i></div></div>
-                            <div class="progress-row"><div><span>College Undergrad</span><strong>0 students</strong></div><div class="bar"><i class="indigo" style="width:35%"></i></div></div>
-                            <div class="progress-row"><div><span>Old Curriculum</span><strong>0 students</strong></div><div class="bar"><i class="slate" style="width:30%"></i></div></div>
+                            <div class="progress-row">
+                                <div class="progress-info">
+                                    <span>TVET</span>
+                                    <span class="progress-count">1 students</span>
+                                </div>
+                                <div class="progress-track">
+                                    <span class="progress-fill" style="width: 11%;"></span>
+                                </div>
+                            </div>
+
+                            <div class="progress-row">
+                                <div class="progress-info">
+                                    <span>ALS</span>
+                                    <span class="progress-count">1 students</span>
+                                </div>
+                                <div class="progress-track">
+                                    <span class="progress-fill als" style="width: 11%;"></span>
+                                </div>
+                            </div>
+
+                            <div class="progress-row">
+                                <div class="progress-info">
+                                    <span>College Undergrad</span>
+                                    <span class="progress-count">1 students</span>
+                                </div>
+                                <div class="progress-track">
+                                    <span class="progress-fill college" style="width: 11%;"></span>
+                                </div>
+                            </div>
+
+                            <div class="progress-row">
+                                <div class="progress-info">
+                                    <span>Old Curriculum</span>
+                                    <span class="progress-count">1 students</span>
+                                </div>
+                                <div class="progress-track">
+                                    <span class="progress-fill old" style="width: 11%;"></span>
+                                </div>
+                            </div>
+
+                            <div class="progress-row">
+                                <div class="progress-info">
+                                    <span>Senior High School</span>
+                                    <span class="progress-count">5 students</span>
+                                </div>
+                                <div class="progress-track">
+                                    <span class="progress-fill shs" style="width: 56%;"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
                     <div>
-                        <h3 class="card-title mb-lg">By Last School / Region</h3>
+                        <h3 class="breakdown-title">By Last School (Region)</h3>
+
                         <div class="progress-list">
-                            <div class="progress-row"><div><span>NCR</span><strong>0 students</strong></div><div class="bar"><i style="width:70%"></i></div></div>
-                            <div class="progress-row"><div><span>Region IV-A</span><strong>0 students</strong></div><div class="bar"><i style="width:65%"></i></div></div>
-                            <div class="progress-row"><div><span>Region III</span><strong>0 students</strong></div><div class="bar"><i style="width:35%"></i></div></div>
+                            <div class="progress-row">
+                                <div class="progress-info">
+                                    <span>NCR</span>
+                                    <span class="progress-count">2 students</span>
+                                </div>
+                                <div class="progress-track">
+                                    <span class="progress-fill region" style="width: 38%;"></span>
+                                </div>
+                            </div>
+
+                            <div class="progress-row">
+                                <div class="progress-info">
+                                    <span>Region IV-A</span>
+                                    <span class="progress-count">2 students</span>
+                                </div>
+                                <div class="progress-track">
+                                    <span class="progress-fill region" style="width: 38%;"></span>
+                                </div>
+                            </div>
+
+                            <div class="progress-row">
+                                <div class="progress-info">
+                                    <span>Region III</span>
+                                    <span class="progress-count">1 students</span>
+                                </div>
+                                <div class="progress-track">
+                                    <span class="progress-fill region" style="width: 15%;"></span>
+                                </div>
+                            </div>
+
+                            <div class="progress-row">
+                                <div class="progress-info">
+                                    <span>Region II</span>
+                                    <span class="progress-count">4 students</span>
+                                </div>
+                                <div class="progress-track">
+                                    <span class="progress-fill region" style="width: 44%;"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -112,6 +504,19 @@
         </section>
     </main>
 </div>
+
 <script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const exportButton = document.querySelector("[data-export-pdf]");
+
+        if (exportButton) {
+            exportButton.addEventListener("click", function () {
+                window.print();
+            });
+        }
+    });
+</script>
 </body>
 </html>
