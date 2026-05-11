@@ -132,24 +132,35 @@ private final AuditLogService auditLogService;
 
             String trackingNo = nextTrackingNo();
 
-            jdbc.update("""
-                    INSERT INTO requirement (
-                        application_id,
-                        requirement_type_id,
-                        requirement_status_id,
-                        requirement_tracking_no,
-                        requirement_file_name,
-                        requirement_image_path,
-                        requirement_uploaded_by_user_id
-                    )
-                    VALUES (?, ?, 1, ?, ?, ?, 1)
-                    """,
-                    applicationId,
-                    requirementTypeId,
-                    trackingNo,
-                    originalName,
-                    savedFilePath.toString()
-            );
+           Integer requirementId = jdbc.queryForObject("""
+        INSERT INTO requirement (
+            application_id,
+            requirement_type_id,
+            requirement_status_id,
+            requirement_tracking_no,
+            requirement_file_name,
+            requirement_image_path,
+            requirement_uploaded_by_user_id
+        )
+        VALUES (?, ?, 1, ?, ?, ?, 1)
+        RETURNING requirement_id
+        """,
+        Integer.class,
+        applicationId,
+        requirementTypeId,
+        trackingNo,
+        originalName,
+        savedFilePath.toString()
+);
+
+auditLogService.log(
+        "UPLOAD_DOCUMENT",
+        "requirement",
+        requirementId != null ? requirementId.longValue() : null,
+        "Uploaded " + originalName + " with tracking number " + trackingNo,
+        null,
+        "Status: Pending"
+);
 
             ra.addFlashAttribute("success", "Document uploaded. Tracking number: " + trackingNo);
             return "redirect:/requirements";
