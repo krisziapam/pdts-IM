@@ -30,3 +30,113 @@ body { min-height: 100vh; font-family: 'DM Sans', system-ui, sans-serif; color: 
 .alert-error { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
 .alert-info { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1D4ED8; }
 @media (max-width: 900px) { #login-page { grid-template-columns: 1fr; } .login-brand { min-height: 42vh; padding: 36px 22px; } .login-panel { min-height: 58vh; padding: 24px; } .login-card { padding: 32px 24px; } }
+
+/* Match PDTS_corrected.html login color direction */
+.login-page,
+.login-shell,
+body.login-body {
+    background-color: #1a0a0a;
+}
+
+/* Softer campus overlay like the reference */
+.login-page::before,
+.login-shell::before,
+body.login-body::before {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(139, 0, 0, 0.58) 0%,
+            rgba(139, 0, 0, 0.42) 42%,
+            rgba(26, 10, 10, 0.48) 100%
+        ) !important;
+}
+
+/* Make left branding closer to the reference */
+.login-brand,
+.login-hero,
+.brand-panel {
+    transform: scale(0.88);
+    transform-origin: center;
+}
+
+/* Logo should be smaller */
+.login-logo,
+.brand-logo,
+.pup-logo {
+    width: 96px !important;
+    height: 96px !important;
+}
+
+/* Title should be smaller and less wide */
+.login-title,
+.brand-title,
+.hero-title {
+    font-size: 34px !important;
+    line-height: 1.15 !important;
+    max-width: 520px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Motto spacing */
+.login-motto,
+.brand-motto,
+.hero-motto {
+    font-size: 15px !important;
+    margin-top: 18px !important;
+}
+
+/* PDTS glass label closer to first image */
+.system-pill,
+.pdts-card,
+.login-system-card {
+    max-width: 390px !important;
+    padding: 18px 28px !important;
+    background: rgba(45, 37, 41, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+}
+
+/* Login card closer to reference size */
+.login-card,
+.auth-card {
+    max-width: 460px !important;
+    padding: 42px 44px !important;
+    border-radius: 16px !important;
+}
+
+/* Softer input borders, red only on focus */
+.login-card input,
+.auth-card input {
+    border-color: #ded6cf !important;
+    box-shadow: none !important;
+}
+
+.login-card input:focus,
+.auth-card input:focus {
+    border-color: #8B0000 !important;
+    box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.12) !important;
+}
+
+/* Match reference button color */
+.login-card button,
+.auth-card button,
+.btn-login {
+    background: #8B0000 !important;
+    border-radius: 8px !important;
+}
+
+.login-card button:hover,
+.auth-card button:hover,
+.btn-login:hover {
+    background: #A4161A !important;
+}
+
+/* Make logout alert less visually dominant */
+.alert,
+.flash,
+.login-alert {
+    font-size: 13px !important;
+    padding: 12px 14px !important;
+    border-radius: 8px !important;
+}
