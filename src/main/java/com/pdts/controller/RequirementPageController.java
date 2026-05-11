@@ -26,7 +26,8 @@ import java.util.UUID;
 public class RequirementPageController {
 
     private final JdbcTemplate jdbc;
-    private final PdtsProperties pdtsProperties;
+private final PdtsProperties pdtsProperties;
+private final AuditLogService auditLogService;
 
     public RequirementPageController(JdbcTemplate jdbc, PdtsProperties pdtsProperties) {
         this.jdbc = jdbc;
