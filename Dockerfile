@@ -10,9 +10,10 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 ENV PORT=10000
+ENV JAVA_OPTS="-Xmx384m -XX:+UseContainerSupport"
 
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 10000
 
-ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT} --server.address=0.0.0.0"]
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -Dserver.port=${PORT:-10000} -Dserver.address=0.0.0.0 -jar app.jar"]
