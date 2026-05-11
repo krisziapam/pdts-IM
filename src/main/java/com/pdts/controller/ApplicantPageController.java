@@ -38,7 +38,7 @@ public class ApplicantPageController {
                        e.category_name, ap.applicant_created_at
                 FROM applicant ap
                 JOIN educational_background_category e ON e.category_id = ap.educational_background_category_id
-                WHERE 1=1
+                WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
                 """);
 
         List<Object> params = new ArrayList<>();
@@ -187,6 +187,7 @@ public class ApplicantPageController {
                 FROM applicant ap
                 JOIN educational_background_category e ON e.category_id = ap.educational_background_category_id
                 WHERE ap.applicant_id = ?
+                  AND COALESCE(ap.applicant_is_deleted, 0) = 0
                 """, id));
 
         model.addAttribute("applications", jdbc.queryForList("""
@@ -216,7 +217,12 @@ public class ApplicantPageController {
     public String editForm(@PathVariable Integer id, Model model) {
         addLookups(model);
         model.addAttribute("mode", "edit");
-        model.addAttribute("applicant", one("SELECT * FROM applicant WHERE applicant_id = ?", id));
+        model.addAttribute("applicant", one("""
+                SELECT *
+                FROM applicant
+                WHERE applicant_id = ?
+                  AND COALESCE(applicant_is_deleted, 0) = 0
+                """, id));
         return "applicant-form";
     }
 
@@ -246,6 +252,7 @@ public class ApplicantPageController {
                     applicant_enrollment_status = ?,
                     applicant_updated_at = CURRENT_TIMESTAMP
                 WHERE applicant_id = ?
+                  AND COALESCE(applicant_is_deleted, 0) = 0
                 """,
                 required(form, "firstName"),
                 blankToNull(form.get("middleName")),
@@ -269,6 +276,26 @@ public class ApplicantPageController {
 
         ra.addFlashAttribute("success", "Applicant updated.");
         return "redirect:/applicants/" + id;
+    }
+
+    @PostMapping("/applicants/{id}/delete")
+    public String delete(@PathVariable Integer id, RedirectAttributes ra) {
+        int updated = jdbc.update("""
+                UPDATE applicant
+                SET applicant_is_deleted = 1,
+                    applicant_deleted_at = CURRENT_TIMESTAMP,
+                    applicant_updated_at = CURRENT_TIMESTAMP
+                WHERE applicant_id = ?
+                  AND COALESCE(applicant_is_deleted, 0) = 0
+                """, id);
+
+        if (updated > 0) {
+            ra.addFlashAttribute("success", "Applicant deleted from the active list.");
+        } else {
+            ra.addFlashAttribute("error", "Applicant was not found or was already deleted.");
+        }
+
+        return "redirect:/applicants";
     }
 
     private void addLookups(Model model) {
