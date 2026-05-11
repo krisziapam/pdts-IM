@@ -139,6 +139,21 @@ public class DashboardController {
         return "dashboard";
     }
 
+    @GetMapping("/email-notifications")
+public String emailNotifications() {
+    return "email-notifications";
+}
+
+@GetMapping("/tracking-lookup")
+public String trackingLookup() {
+    return "tracking-lookup";
+}
+
+@GetMapping("/reports")
+public String reports() {
+    return "reports";
+}
+
     private Integer count(String sql) {
         Integer value = jdbc.queryForObject(sql, Integer.class);
         return value == null ? 0 : value;
