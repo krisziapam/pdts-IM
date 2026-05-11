@@ -33,15 +33,42 @@ public class ApplicantPageController {
                        @RequestParam(required = false) String category,
                        @RequestParam(required = false) String enrollment,
                        @RequestParam(required = false) String region,
+                       @RequestParam(required = false) String program,
                        Model model) {
 
         StringBuilder sql = new StringBuilder("""
-                SELECT ap.applicant_id, ap.applicant_first_name, ap.applicant_last_name,
-                       ap.applicant_email_address, ap.applicant_contact_number,
-                       ap.applicant_region, ap.applicant_enrollment_status,
-                       e.category_name, ap.applicant_created_at
+                SELECT ap.applicant_id,
+                       ap.applicant_first_name,
+                       ap.applicant_last_name,
+                       ap.applicant_email_address,
+                       ap.applicant_contact_number,
+                       ap.applicant_region,
+                       ap.applicant_enrollment_status,
+                       e.category_name,
+                       ap.applicant_created_at,
+                       latest_app.application_reference_number,
+                       latest_app.program_id,
+                       latest_app.program_code,
+                       latest_app.program_name,
+                       COALESCE(
+                           REPLACE(latest_app.application_reference_number, 'APP-', 'STU-'),
+                           'STU-' || ap.applicant_id
+                       ) AS student_tracking_no
                 FROM applicant ap
-                JOIN educational_background_category e ON e.category_id = ap.educational_background_category_id
+                JOIN educational_background_category e
+                  ON e.category_id = ap.educational_background_category_id
+                LEFT JOIN LATERAL (
+                    SELECT a.application_id,
+                           a.application_reference_number,
+                           a.program_id,
+                           p.program_code,
+                           p.program_name
+                    FROM application a
+                    JOIN program p ON p.program_id = a.program_id
+                    WHERE a.applicant_id = ap.applicant_id
+                    ORDER BY a.application_date DESC, a.application_id DESC
+                    LIMIT 1
+                ) latest_app ON true
                 WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
                 """);
 
@@ -53,9 +80,16 @@ public class ApplicantPageController {
                         LOWER(ap.applicant_first_name) LIKE LOWER(?)
                         OR LOWER(ap.applicant_last_name) LIKE LOWER(?)
                         OR LOWER(ap.applicant_email_address) LIKE LOWER(?)
+                        OR LOWER(COALESCE(latest_app.application_reference_number, '')) LIKE LOWER(?)
+                        OR LOWER(COALESCE(latest_app.program_code, '')) LIKE LOWER(?)
+                        OR LOWER(COALESCE(latest_app.program_name, '')) LIKE LOWER(?)
                     )
                     """);
+
             String q = "%" + search.trim() + "%";
+            params.add(q);
+            params.add(q);
+            params.add(q);
             params.add(q);
             params.add(q);
             params.add(q);
@@ -76,18 +110,32 @@ public class ApplicantPageController {
             params.add("%" + region.trim() + "%");
         }
 
+        if (program != null && !program.isBlank()) {
+            sql.append(" AND latest_app.program_id = ?");
+            params.add(Integer.parseInt(program));
+        }
+
         sql.append(" ORDER BY ap.applicant_created_at DESC, ap.applicant_id DESC");
 
         model.addAttribute("applicants", jdbc.queryForList(sql.toString(), params.toArray()));
+
         model.addAttribute("categories", jdbc.queryForList("""
                 SELECT category_id, category_name
                 FROM educational_background_category
                 ORDER BY category_name
                 """));
+
+        model.addAttribute("programs", jdbc.queryForList("""
+                SELECT program_id, program_name, program_code
+                FROM program
+                ORDER BY program_name
+                """));
+
         model.addAttribute("search", search);
         model.addAttribute("category", category);
         model.addAttribute("enrollment", enrollment);
         model.addAttribute("region", region);
+        model.addAttribute("program", program);
 
         return "applicants";
     }
