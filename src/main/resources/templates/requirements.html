@@ -415,13 +415,11 @@
                             </td>
 
                             <td>
-                                <div class="td-name" th:text="${r['applicant_first_name'] + ' ' + r['applicant_last_name']}">
-                                    Student
-                                </div>
-                                <div class="td-muted" th:text="${r['application_reference_number']}">
-                                    Reference
-                                </div>
-                            </td>
+    <div class="td-name"
+         th:text="${r['applicant_last_name'] + ', ' + r['applicant_first_name']}">
+        Dela Cruz, Juan S.
+    </div>
+</td>
 
                             <td th:text="${r['requirement_type_name']}">Document Type</td>
 
