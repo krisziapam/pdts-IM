@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PDTS Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/assets/favicon-32x32.png}" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/assets/favicon-16x16.png}" href="/assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/assets/apple-touch-icon.png}" href="/assets/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
+</head>
+<body>
+<div id="app">
+
+    <aside id="sidebar">
+        <div class="sb-logo">
+            <div class="sb-logo-top">
+                <img th:src="@{/assets/logo.png}" src="/assets/logo.png" alt="PUP Logo">
+                <div>
+                    <div class="sb-logo-text">PUPOUS Registrar</div>
+                    <div class="sb-system-name">PDTS System</div>
+                </div>
+            </div>
+            <div class="sb-logo-sub">POLYTECHNIC UNIVERSITY OF THE PHILIPPINES</div>
+        </div>
+
+        <nav class="sb-section" aria-label="Main navigation">
+            <div class="sb-section-label">Main</div>
+            <a class="sb-nav-item active" th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
+            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Students / Applicants</a>
+            <a class="sb-nav-item" th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Document Submissions</a>
+        </nav>
+
+        <nav class="sb-section" aria-label="Management navigation">
+            <div class="sb-section-label">Management</div>
+            <a class="sb-nav-item disabled" href="#" aria-disabled="true" title="Visual placeholder only; backend route not yet available"><span class="icon">✉</span>Email Notifications</a>
+            <a class="sb-nav-item disabled" href="#" aria-disabled="true" title="Visual placeholder only; backend route not yet available"><span class="icon">⌕</span>Tracking Lookup</a>
+            <a class="sb-nav-item disabled" href="#" aria-disabled="true" title="Visual placeholder only; backend route not yet available"><span class="icon">▤</span>Reports &amp; Filters</a>
+        </nav>
+
+        <nav class="sb-section" aria-label="System navigation">
+            <div class="sb-section-label">System</div>
+            <a class="sb-nav-item" th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Audit Logs</a>
+            <a class="sb-nav-item" th:href="@{/users/new}" href="/users/new"><span class="icon">＋</span>Create Account</a>
+            <a class="sb-nav-item" th:href="@{/users}" href="/users"><span class="icon">⚙</span>Settings</a>
+        </nav>
+
+        <div class="sb-bottom">
+            <div class="sb-user">
+                <div class="sb-avatar">ST</div>
+                <div class="sb-user-info">
+                    <div>Staff User</div>
+                    <div class="sb-user-role">Registrar Office</div>
+                </div>
+            </div>
+            <a class="sb-nav-item logout" th:href="@{/logout}" href="/logout"><span class="icon">↪</span>Sign Out</a>
+        </div>
+    </aside>
+
+    <main id="main">
+        <header id="topbar">
+            <div>
+                <div class="topbar-title">Dashboard</div>
+                
+            </div>
+            <div class="topbar-right"><span class="ay-label">AY 2025–2026 · 1st Semester</span><a class="btn btn-primary" th:href="@{/applicants/new}" href="/applicants/new">+ New Applicant</a></div>
+        </header>
+        <section id="content">
+
+            <div class="stats-grid four">
+                <article class="stat-card red"><div class="stat-label">Total Applicants</div><div class="stat-value" th:text="${applicantCount}">0</div><div class="stat-sub">Registered this AY</div></article>
+                <article class="stat-card gold"><div class="stat-label">Pending Documents</div><div class="stat-value" th:text="${pendingCount}">0</div><div class="stat-sub">Awaiting processing</div></article>
+                <article class="stat-card"><div class="stat-label">Cleared Students</div><div class="stat-value" th:text="${verifiedCount}">0</div><div class="stat-sub">Requirements complete</div></article>
+                <article class="stat-card"><div class="stat-label">Emails Sent Today</div><div class="stat-value">0</div><div class="stat-sub">Email module pending</div></article>
+            </div>
+
+            <div class="dash-grid">
+                <section class="card stretch-card">
+                    <div class="card-header">
+                        <h2 class="card-title">Recent Submissions</h2>
+                        <a class="btn btn-outline btn-sm" th:href="@{/requirements}" href="/requirements">View All</a>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Tracking #</th><th>Student</th><th>Document</th><th>Submitted</th><th>Status</th></tr></thead>
+                            <tbody>
+                            <tr th:if="${recentRequirements.isEmpty()}"><td colspan="5" class="empty-state">No recent document submissions yet.</td></tr>
+                            <tr th:each="r : ${recentRequirements}">
+                                <td><span class="tracking-badge" th:text="${r['requirement_tracking_no']}">DOC</span></td>
+                                <td class="td-name" th:text="${r['applicant_first_name'] + ' ' + r['applicant_last_name']}">Student</td>
+                                <td th:text="${r['requirement_type_name']}">Document</td>
+                                <td class="td-muted" th:text="${r['requirement_upload_date']}">Date</td>
+                                <td><span class="badge" th:text="${r['requirement_status_name']}">Status</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <aside class="side-stack">
+                    <section class="card">
+                        <div class="card-header"><h2 class="card-title">Curriculum Breakdown</h2></div>
+                        <div class="progress-list">
+                            <div class="progress-row"><div><span>TVET</span><strong th:text="${applicantCount}">0</strong></div><div class="bar"><i style="width:45%"></i></div></div>
+                            <div class="progress-row"><div><span>ALS</span><strong>—</strong></div><div class="bar"><i class="purple" style="width:30%"></i></div></div>
+                            <div class="progress-row"><div><span>College Undergrad</span><strong>—</strong></div><div class="bar"><i class="indigo" style="width:30%"></i></div></div>
+                            <div class="progress-row"><div><span>Old Curriculum</span><strong>—</strong></div><div class="bar"><i class="slate" style="width:30%"></i></div></div>
+                            <div class="progress-row"><div><span>Senior High School</span><strong>—</strong></div><div class="bar"><i class="blue" style="width:30%"></i></div></div>
+                        </div>
+                    </section>
+                    <section class="card">
+                        <div class="card-header"><h2 class="card-title">Upcoming Deadlines</h2></div>
+                        <div class="deadline-list">
+                            <div class="deadline warn"><span>Form 137 Deadline</span><strong>Configure</strong></div>
+                            <div class="deadline danger"><span>Good Moral Deadline</span><strong>Configure</strong></div>
+                            <div class="deadline ok"><span>PSA Birth Certificate</span><strong>Configure</strong></div>
+                        </div>
+                    </section>
+                </aside>
+            </div>
+
+            <div class="stats-grid five compact mt-lg">
+                <article class="stat-card"><div class="stat-label">Applications</div><div class="stat-value" th:text="${applicationCount}">0</div></article>
+                <article class="stat-card"><div class="stat-label">Documents</div><div class="stat-value" th:text="${requirementCount}">0</div></article>
+                <article class="stat-card"><div class="stat-label">Under Review</div><div class="stat-value" th:text="${underReviewCount}">0</div></article>
+                <article class="stat-card"><div class="stat-label">Rejected</div><div class="stat-value" th:text="${rejectedCount}">0</div></article>
+                <article class="stat-card"><div class="stat-label">For Resubmission</div><div class="stat-value" th:text="${resubmissionCount}">0</div></article>
+            </div>
+
+        </section>
+    </main>
+</div>
+<script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>System Settings</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/assets/favicon-32x32.png}" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/assets/favicon-16x16.png}" href="/assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/assets/apple-touch-icon.png}" href="/assets/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
+</head>
+<body>
+<div id="app">
+
+    <aside id="sidebar">
+        <div class="sb-logo">
+            <div class="sb-logo-top">
+                <img th:src="@{/assets/logo.png}" src="/assets/logo.png" alt="PUP Logo">
+                <div>
+                    <div class="sb-logo-text">PUPOUS Registrar</div>
+                    <div class="sb-system-name">PDTS System</div>
+                </div>
+            </div>
+            <div class="sb-logo-sub">POLYTECHNIC UNIVERSITY OF THE PHILIPPINES</div>
+        </div>
+
+        <nav class="sb-section" aria-label="Main navigation">
+            <div class="sb-section-label">Main</div>
+            <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
+            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Students / Applicants</a>
+            <a class="sb-nav-item" th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Document Submissions</a>
+        </nav>
+
+        <nav class="sb-section" aria-label="Management navigation">
+            <div class="sb-section-label">Management</div>
+            <a class="sb-nav-item disabled" href="#" aria-disabled="true" title="Visual placeholder only; backend route not yet available"><span class="icon">✉</span>Email Notifications</a>
+            <a class="sb-nav-item disabled" href="#" aria-disabled="true" title="Visual placeholder only; backend route not yet available"><span class="icon">⌕</span>Tracking Lookup</a>
+            <a class="sb-nav-item disabled" href="#" aria-disabled="true" title="Visual placeholder only; backend route not yet available"><span class="icon">▤</span>Reports &amp; Filters</a>
+        </nav>
+
+        <nav class="sb-section" aria-label="System navigation">
+            <div class="sb-section-label">System</div>
+            <a class="sb-nav-item" th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Audit Logs</a>
+            <a class="sb-nav-item" th:href="@{/users/new}" href="/users/new"><span class="icon">＋</span>Create Account</a>
+            <a class="sb-nav-item active" th:href="@{/users}" href="/users"><span class="icon">⚙</span>Settings</a>
+        </nav>
+
+        <div class="sb-bottom">
+            <div class="sb-user">
+                <div class="sb-avatar">ST</div>
+                <div class="sb-user-info">
+                    <div>Staff User</div>
+                    <div class="sb-user-role">Registrar Office</div>
+                </div>
+            </div>
+            <a class="sb-nav-item logout" th:href="@{/logout}" href="/logout"><span class="icon">↪</span>Sign Out</a>
+        </div>
+    </aside>
+
+    <main id="main">
+        <header id="topbar">
+            <div>
+                <div class="topbar-title">System Settings</div>
+                
+            </div>
+            <div class="topbar-right"><span class="ay-label">AY 2025–2026 · 1st Semester</span><a class="btn btn-primary" th:href="@{/users/new}" href="/users/new">+ Add User</a></div>
+        </header>
+        <section id="content">
+
+            <div th:if="${success}" class="flash success" th:text="${success}"></div>
+            <div class="settings-grid">
+                <section class="card">
+                    <div class="card-header"><h2 class="card-title">System Configuration</h2></div>
+                    <div class="form-grid single muted-form">
+                        <label class="form-group">Academic Year<input value="2025–2026" readonly></label>
+                        <label class="form-group">Current Semester<input value="First Semester" readonly></label>
+                        <label class="form-group">Max Photo Upload Size<input value="300 KB" readonly></label>
+                        <label class="form-group">Email Reminder Day<input value="Monday" readonly></label>
+                    </div>
+                </section>
+                <section class="card">
+                    <div class="card-header"><h2 class="card-title">Manage Users</h2><a class="btn btn-outline btn-sm" th:href="@{/users/new}" href="/users/new">+ Add User</a></div>
+                    <div class="user-list">
+                        <div th:if="${users.isEmpty()}" class="empty-state">No staff accounts yet.</div>
+                        <div class="user-row" th:each="u : ${users}">
+                            <div><strong th:text="${u['user_first_name'] + ' ' + u['user_last_name']}">User</strong><span th:text="${u['role_name'] + ' · ' + u['user_email_address']}">Role</span></div>
+                            <div class="user-actions"><span class="badge" th:text="${u['user_is_active'] == 1 ? 'Active' : 'Inactive'}">Active</span><form method="post" th:action="@{/users/{id}/toggle(id=${u['user_id']})}"><button class="btn btn-outline btn-sm" type="submit" th:text="${u['user_is_active'] == 1 ? 'Deactivate' : 'Activate'}">Toggle</button></form></div>
+                        </div>
+                    </div>
+                </section>
+                <section class="card">
+                    <div class="card-header"><h2 class="card-title">Rejection Reason Library</h2></div>
+                    <div class="reason-list">
+                        <div>Not PSA-Authenticated <span class="badge badge-active">Active</span></div>
+                        <div>Old NSO Copy <span class="badge badge-active">Active</span></div>
+                        <div>Blurred/Unrecognized Registry Number <span class="badge badge-active">Active</span></div>
+                        <div>Name Mismatch <span class="badge badge-active">Active</span></div>
+                        <div>Birth Date Mismatch <span class="badge badge-active">Active</span></div>
+                    </div>
+                </section>
+                <section class="card">
+                    <div class="card-header"><h2 class="card-title">Campus / Program Master List</h2></div>
+                    <p class="td-muted mb-lg">Manage campuses and programs available for applicants. Backend maintenance screen can be added later.</p>
+                    <div class="reason-list"><div>BSIT <span class="badge badge-active">Active</span></div><div>BSOA <span class="badge badge-active">Active</span></div><div>BSTM <span class="badge badge-active">Active</span></div><div>BSENT <span class="badge badge-active">Active</span></div></div>
+                </section>
+            </div>
+
+        </section>
+    </main>
+</div>
+<script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
+</body>
+</html>
