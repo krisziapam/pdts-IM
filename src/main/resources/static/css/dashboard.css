@@ -70,6 +70,9 @@ a { color: inherit; }
 .stats-grid.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .stats-grid.compact .stat-card { padding: 14px 16px; }
 .stat-card { background: #fff; border: var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+.stat-card-link { display: block; color: inherit; text-decoration: none; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.stat-card-link:hover, .stat-card-link:focus-visible { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(139, 0, 0, 0.14); border-color: rgba(139, 0, 0, 0.28); outline: none; }
+.stat-card-link:focus-visible { box-shadow: 0 0 0 3px rgba(200, 169, 81, 0.35), 0 8px 22px rgba(139, 0, 0, 0.14); }
 .stat-card.red { border-left: 4px solid var(--pup-red); }
 .stat-card.gold { border-left: 4px solid var(--pup-gold); }
 .stat-label { font-size: 11.5px; color: #6B5C5C; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
