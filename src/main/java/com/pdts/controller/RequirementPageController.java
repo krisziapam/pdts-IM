@@ -73,7 +73,7 @@ public class RequirementPageController {
         return "requirement-form";
     }
 
-    @PostMapping("/requirements")
+   @PostMapping("/requirements/{id}/status")
     public String create(@RequestParam Integer applicationId,
                          @RequestParam Integer requirementTypeId,
                          @RequestParam MultipartFile file,
