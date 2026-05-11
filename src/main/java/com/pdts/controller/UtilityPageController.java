@@ -1,9 +1,7 @@
 package com.pdts.controller;
 
 import com.pdts.service.AuditLogService;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -12,28 +10,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class UtilityPageController {
 
-    private final JdbcTemplate jdbc;
     private final AuditLogService auditLogService;
 
-    public UtilityPageController(JdbcTemplate jdbc, AuditLogService auditLogService) {
-        this.jdbc = jdbc;
+    public UtilityPageController(AuditLogService auditLogService) {
         this.auditLogService = auditLogService;
     }
 
     @GetMapping("/email-notifications")
-    public String emailNotifications(Model model) {
-        model.addAttribute("simulatedEmailLogs", jdbc.queryForList("""
-                SELECT 
-                    user_activity_log_id,
-                    user_activity_log_description,
-                    user_activity_log_new_value,
-                    user_activity_log_performed_at
-                FROM user_activity_log
-                WHERE user_activity_log_action_type = 'SEND_EMAIL'
-                ORDER BY user_activity_log_performed_at DESC
-                LIMIT 10
-                """));
-
+    public String emailNotifications() {
         return "email-notifications";
     }
 
@@ -41,9 +25,11 @@ public class UtilityPageController {
     public String sendEmailNotification(@RequestParam String recipient,
                                         @RequestParam String emailType,
                                         @RequestParam String subject,
-                                        @RequestParam String messageBody,
+                                        @RequestParam("body") String body,
                                         @RequestParam(required = false) String remarks,
                                         RedirectAttributes ra) {
+
+        String emailTypeLabel = getEmailTypeLabel(emailType);
 
         String cleanRemarks = remarks == null || remarks.isBlank()
                 ? "No additional remarks"
@@ -53,7 +39,7 @@ public class UtilityPageController {
                 "SEND_EMAIL",
                 "email_log",
                 null,
-                "Sent " + emailType + " to " + recipient,
+                "Sent " + emailTypeLabel + " to " + recipient,
                 null,
                 "Subject: " + subject + " | Remarks: " + cleanRemarks
         );
@@ -70,5 +56,25 @@ public class UtilityPageController {
     @GetMapping("/reports")
     public String reports() {
         return "reports";
+    }
+
+    private String getEmailTypeLabel(String emailType) {
+        if ("pending".equals(emailType)) {
+            return "Pending Requirements Reminder";
+        }
+
+        if ("received".equals(emailType)) {
+            return "Acknowledgment Receipt";
+        }
+
+        if ("rejected".equals(emailType)) {
+            return "Document Rejection Notice";
+        }
+
+        if ("deadline".equals(emailType)) {
+            return "Deadline Alert";
+        }
+
+        return "Email Notification";
     }
 }
