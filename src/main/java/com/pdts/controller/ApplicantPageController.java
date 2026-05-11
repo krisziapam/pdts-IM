@@ -9,6 +9,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Date;
 import java.time.Year;
 import java.util.ArrayList;
@@ -278,8 +282,23 @@ public class ApplicantPageController {
         return "redirect:/applicants/" + id;
     }
 
+    @Transactional
     @PostMapping("/applicants/{id}/delete")
     public String delete(@PathVariable Integer id, RedirectAttributes ra) {
+        List<String> documentPaths = jdbc.queryForList("""
+                SELECT r.requirement_image_path
+                FROM requirement r
+                JOIN application a ON a.application_id = r.application_id
+                WHERE a.applicant_id = ?
+                """, String.class, id);
+
+        int documentsDeleted = jdbc.update("""
+                DELETE FROM requirement r
+                USING application a
+                WHERE r.application_id = a.application_id
+                  AND a.applicant_id = ?
+                """, id);
+
         int updated = jdbc.update("""
                 UPDATE applicant
                 SET applicant_is_deleted = 1,
@@ -290,12 +309,36 @@ public class ApplicantPageController {
                 """, id);
 
         if (updated > 0) {
-            ra.addFlashAttribute("success", "Applicant deleted from the active list.");
+            int filesDeleted = deleteUploadedFiles(documentPaths);
+            ra.addFlashAttribute("success", "Applicant deleted from the active list. Deleted "
+                    + documentsDeleted + " related document record(s) and "
+                    + filesDeleted + " uploaded file(s).");
         } else {
             ra.addFlashAttribute("error", "Applicant was not found or was already deleted.");
         }
 
         return "redirect:/applicants";
+    }
+
+    private int deleteUploadedFiles(List<String> documentPaths) {
+        int deleted = 0;
+
+        for (String documentPath : documentPaths) {
+            if (documentPath == null || documentPath.isBlank()) {
+                continue;
+            }
+
+            try {
+                Path path = Paths.get(documentPath);
+                if (Files.deleteIfExists(path)) {
+                    deleted++;
+                }
+            } catch (IOException | RuntimeException ignored) {
+                // The database record is already removed. Continue deleting the other files.
+            }
+        }
+
+        return deleted;
     }
 
     private void addLookups(Model model) {
