@@ -2,8 +2,6 @@ package com.pdts.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,10 +13,6 @@ public class AuditLogService {
     public AuditLogService(JdbcTemplate jdbc, HttpServletRequest request) {
         this.jdbc = jdbc;
         this.request = request;
-    }
-
-    public void log(String actionType, String entityType, String description) {
-        log(actionType, entityType, null, description, null, null);
     }
 
     public void log(String actionType, String entityType, Long recordId, String description) {
@@ -33,7 +27,6 @@ public class AuditLogService {
                     String newValue) {
 
         try {
-            Integer userId = getCurrentUserId();
             String ipAddress = getClientIpAddress();
 
             jdbc.update("""
@@ -49,7 +42,7 @@ public class AuditLogService {
                     )
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    userId,
+                    1,
                     actionType,
                     entityType,
                     recordId,
@@ -61,29 +54,6 @@ public class AuditLogService {
 
         } catch (Exception e) {
             System.out.println("[AUDIT LOG ERROR] " + e.getMessage());
-        }
-    }
-
-    private Integer getCurrentUserId() {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-            if (authentication == null || authentication.getName() == null) {
-                return 1;
-            }
-
-            String username = authentication.getName();
-
-            Integer userId = jdbc.queryForObject("""
-                    SELECT user_id
-                    FROM app_user
-                    WHERE user_username = ?
-                    """, Integer.class, username);
-
-            return userId != null ? userId : 1;
-
-        } catch (Exception e) {
-            return 1;
         }
     }
 
