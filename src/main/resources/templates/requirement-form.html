@@ -1,94 +1,84 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <title>Upload Document</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Document</title>
 
-    <!-- Favicon / Browser Tab Icon -->
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
     <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
-
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/assets/favicon-32x32.png}" href="/assets/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" th:href="@{/assets/favicon-16x16.png}" href="/assets/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" th:href="@{/assets/apple-touch-icon.png}" href="/assets/apple-touch-icon.png">
 
-    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
 </head>
-
 <body>
-<div class="shell">
-
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-mark">PUP</div>
-            <div>
-                <div class="brand-title">Document Tracking System</div>
-                <span class="brand-subtitle">Open University System</span>
+<div id="app">
+    <aside id="sidebar">
+        <div class="sb-logo">
+            <div class="sb-logo-top">
+                <img th:src="@{/assets/logo.png}" src="/assets/logo.png" alt="PUP Logo">
+                <div>
+                    <div class="sb-logo-text">PUPOUS Registrar</div>
+                    <div class="sb-system-name">PDTS System</div>
+                </div>
             </div>
+            <div class="sb-logo-sub">POLYTECHNIC UNIVERSITY OF THE PHILIPPINES</div>
         </div>
 
-        <nav class="nav">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/applicants">Applicants</a>
-            <a href="/requirements">Documents</a>
-            <a class="active" href="/requirements/new">Upload Document</a>
-            <a href="/logout">Logout</a>
+        <nav class="sb-section" aria-label="Main navigation">
+            <div class="sb-section-label">Management</div>
+            <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Main Dashboard</a>
+            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Applicants</a>
+            <a class="sb-nav-item" th:href="@{/applicants/new}" href="/applicants/new"><span class="icon">+</span>New Applicant</a>
+            <a class="sb-nav-item" th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Documents</a>
+            <a class="sb-nav-item active" th:href="@{/requirements/new}" href="/requirements/new"><span class="icon">⇧</span>Upload Document</a>
+            <a class="sb-nav-item" th:href="@{/users}" href="/users"><span class="icon">♙</span>Staff Accounts</a>
+            <a class="sb-nav-item" th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Activity Logs</a>
         </nav>
+
+        <div class="sb-bottom">
+            <div class="sb-user">
+                <div class="sb-avatar">ST</div>
+                <div class="sb-user-info">
+                    <div>Staff User</div>
+                    <div class="sb-user-role">Registrar Office</div>
+                </div>
+            </div>
+            <a class="sb-nav-item logout" th:href="@{/logout}" href="/logout"><span class="icon">↪</span>Logout</a>
+        </div>
     </aside>
 
-    <main class="main">
-
-        <header class="topbar">
+    <main id="main">
+        <header id="topbar">
             <div>
-                <h1>Upload Document</h1>
-                <p class="lead">Attach a document to an existing application.</p>
+                <div class="topbar-title">Upload Document</div>
+                <div class="topbar-subtitle">Attach a document to an existing application.</div>
             </div>
-
-            <a class="btn secondary" href="/requirements">Back</a>
+            <div class="topbar-right">
+                <a class="btn btn-outline" th:href="@{/requirements}" href="/requirements">Back</a>
+            </div>
         </header>
 
-        <div th:if="${error}" class="flash error" th:text="${error}"></div>
+        <section id="content">
+            <div th:if="${error}" class="flash error" th:text="${error}"></div>
 
-        <form class="card" method="post" action="/requirements" enctype="multipart/form-data">
-            <div class="form-grid">
-
-                <label class="full">
-                    Application
-                    <select name="applicationId" required>
-                        <option value="">Select application</option>
-                        <option th:each="a : ${applications}"
-                                th:value="${a['application_id']}"
-                                th:text="${a['application_reference_number'] + ' — ' + a['applicant_first_name'] + ' ' + a['applicant_last_name']}">
-                        </option>
-                    </select>
-                </label>
-
-                <label class="full">
-                    Requirement Type
-                    <select name="requirementTypeId" required>
-                        <option value="">Select document type</option>
-                        <option th:each="t : ${types}"
-                                th:value="${t['type_id']}"
-                                th:text="${t['requirement_type_name']}">
-                        </option>
-                    </select>
-                </label>
-
-                <label class="full">
-                    File
-                    <input type="file" name="file" required>
-                </label>
-
-            </div>
-
-            <div class="section actions">
-                <button class="btn" type="submit">Upload Document</button>
-                <a class="btn secondary" href="/requirements">Cancel</a>
-            </div>
-        </form>
-
+            <form class="card form-card narrow" method="post" th:action="@{/requirements}" action="/requirements" enctype="multipart/form-data">
+                <div class="card-header"><h2 class="card-title">Document Information</h2></div>
+                <div class="form-grid">
+                    <label class="form-group full">Application<select name="applicationId" required><option value="">Select application</option><option th:each="a : ${applications}" th:value="${a['application_id']}" th:text="${a['application_reference_number'] + ' — ' + a['applicant_first_name'] + ' ' + a['applicant_last_name']}"></option></select></label>
+                    <label class="form-group full">Requirement Type<select name="requirementTypeId" required><option value="">Select document type</option><option th:each="t : ${types}" th:value="${t['type_id']}" th:text="${t['requirement_type_name']}"></option></select></label>
+                    <label class="form-group full">File<input type="file" name="file" required></label>
+                </div>
+                <div class="form-actions"><a class="btn btn-outline" th:href="@{/requirements}" href="/requirements">Cancel</a><button class="btn btn-primary" type="submit">Upload Document</button></div>
+            </form>
+        </section>
     </main>
 </div>
+<script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
 </body>
 </html>
