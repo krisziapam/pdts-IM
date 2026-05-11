@@ -30,3 +30,330 @@ body { min-height: 100vh; font-family: 'DM Sans', system-ui, sans-serif; color: 
 .alert-error { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
 .alert-info { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1D4ED8; }
 @media (max-width: 900px) { #login-page { grid-template-columns: 1fr; } .login-brand { min-height: 42vh; padding: 36px 22px; } .login-panel { min-height: 58vh; padding: 24px; } .login-card { padding: 32px 24px; } }
+
+/* =========================================================
+   LOGIN PAGE FINAL MATCH TO PDTS_corrected.html
+   Update only: src/main/resources/static/css/login.css
+   ========================================================= */
+
+:root {
+    --pup-red: #8B0000;
+    --pup-gold: #C8A951;
+    --pup-dark: #1a0a0a;
+    --pup-light: #fdf8f0;
+    --pup-red-soft: #f5eded;
+    --pup-red-mid: #c41e1e;
+}
+
+/* Overall page */
+body,
+body.login-body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--pup-dark);
+}
+
+/* Main login background and layout */
+.login-page,
+.login-shell,
+#login-page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    background-image:
+        linear-gradient(
+            90deg,
+            rgba(139, 0, 0, 0.58) 0%,
+            rgba(139, 0, 0, 0.42) 48%,
+            rgba(26, 10, 10, 0.52) 100%
+        ),
+        url('/assets/login-campus.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #ffffff;
+}
+
+/* Left branding area */
+.login-left,
+.login-brand,
+.login-hero,
+.brand-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 72px;
+}
+
+/* PUP logo on left side */
+.login-logo,
+.brand-logo,
+.pup-logo,
+.login-left img,
+.login-brand img,
+.login-hero img {
+    width: 110px !important;
+    height: 110px !important;
+    object-fit: contain;
+    border-radius: 50%;
+    margin-bottom: 24px;
+}
+
+/* University title */
+.login-title,
+.brand-title,
+.hero-title,
+.login-left h1,
+.login-brand h1,
+.login-hero h1 {
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 34px !important;
+    line-height: 1.14 !important;
+    font-weight: 600 !important;
+    color: #ffffff;
+    max-width: 480px;
+    margin: 0 auto 12px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Motto */
+.login-motto,
+.brand-motto,
+.hero-motto,
+.login-left p,
+.login-brand p,
+.login-hero p {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 14px !important;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+/* PDTS glass card */
+.system-pill,
+.pdts-card,
+.login-system-card,
+.system-card {
+    width: 390px;
+    max-width: 90%;
+    margin-top: 42px;
+    padding: 18px 28px !important;
+    background: rgba(45, 37, 41, 0.72) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    color: #ffffff;
+    text-align: center;
+    backdrop-filter: blur(4px);
+}
+
+.system-pill strong,
+.pdts-card strong,
+.login-system-card strong,
+.system-card strong {
+    display: block;
+    color: var(--pup-gold);
+    font-size: 13px;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.system-pill span,
+.pdts-card span,
+.login-system-card span,
+.system-card span {
+    font-size: 15px;
+    color: #ffffff;
+}
+
+/* Right login area */
+.login-right,
+.login-panel,
+.auth-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 72px;
+}
+
+/* Login white card */
+.login-card,
+.auth-card,
+.login-box {
+    width: 100%;
+    max-width: 460px !important;
+    background: #ffffff;
+    color: var(--pup-dark);
+    border-radius: 16px !important;
+    padding: 42px 44px !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* Card heading */
+.login-card h1,
+.login-card h2,
+.auth-card h1,
+.auth-card h2,
+.login-box h1,
+.login-box h2 {
+    font-family: 'Crimson Pro', Georgia, serif;
+    color: var(--pup-red);
+    font-size: 24px !important;
+    line-height: 1.1;
+    margin: 0 0 6px;
+    font-weight: 600;
+}
+
+.login-card .subtitle,
+.auth-card .subtitle,
+.login-box .subtitle,
+.login-card p,
+.auth-card p {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 28px;
+}
+
+/* Labels */
+.login-card label,
+.auth-card label,
+.login-box label {
+    display: block;
+    color: #2a1c1c;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+}
+
+/* Inputs */
+.login-card input,
+.auth-card input,
+.login-box input {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid #ded6cf !important;
+    border-radius: 9px !important;
+    padding: 12px 14px !important;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: #1a0a0a;
+    background: #ffffff;
+    box-shadow: none !important;
+    outline: none;
+}
+
+.login-card input:focus,
+.auth-card input:focus,
+.login-box input:focus {
+    border-color: var(--pup-red) !important;
+    box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.12) !important;
+}
+
+/* Space between fields */
+.form-group,
+.login-field,
+.input-group {
+    margin-bottom: 20px;
+}
+
+/* Sign in button */
+.login-card button,
+.auth-card button,
+.login-box button,
+.btn-login,
+.login-submit {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 8px;
+    background: var(--pup-red) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: none !important;
+}
+
+.login-card button:hover,
+.auth-card button:hover,
+.login-box button:hover,
+.btn-login:hover,
+.login-submit:hover {
+    background: var(--pup-red-mid) !important;
+}
+
+/* Footer text under button */
+.login-footer,
+.auth-footer,
+.login-note {
+    margin-top: 20px;
+    text-align: center;
+    color: #b5b0ad !important;
+    font-size: 13px !important;
+}
+
+/* Logout/success alert should be smaller and softer */
+.alert,
+.flash,
+.login-alert,
+.message {
+    border-radius: 8px !important;
+    padding: 12px 14px !important;
+    font-size: 13px !important;
+    font-weight: 600;
+    margin-bottom: 20px !important;
+}
+
+/* Remove the extra oversized current-system effect */
+.login-brand,
+.login-hero,
+.brand-panel {
+    transform: none !important;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .login-page,
+    .login-shell,
+    #login-page {
+        grid-template-columns: 1fr;
+        padding: 32px 20px;
+    }
+
+    .login-left,
+    .login-brand,
+    .login-hero,
+    .brand-panel {
+        padding: 32px 16px;
+    }
+
+    .login-right,
+    .login-panel,
+    .auth-panel {
+        padding: 20px 16px 40px;
+    }
+
+    .login-title,
+    .brand-title,
+    .hero-title,
+    .login-left h1,
+    .login-brand h1,
+    .login-hero h1 {
+        font-size: 28px !important;
+    }
+
+    .login-card,
+    .auth-card,
+    .login-box {
+        padding: 34px 28px !important;
+    }
+}
