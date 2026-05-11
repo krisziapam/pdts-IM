@@ -4,7 +4,10 @@ import com.pdts.config.PdtsProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -31,23 +34,28 @@ public class RequirementPageController {
     @GetMapping("/requirements")
     public String list(@RequestParam(required = false) Integer statusId, Model model) {
         StringBuilder sql = new StringBuilder("""
-                SELECT r.requirement_id,
-                       r.requirement_tracking_no,
-                       r.requirement_file_name,
-                       r.requirement_upload_date,
-                       r.requirement_status_id,
-                       rt.requirement_type_name,
-                       rs.requirement_status_name,
-                       a.application_reference_number,
-                       ap.applicant_id,
-                       ap.applicant_first_name,
-                       ap.applicant_last_name,
-                       ap.applicant_email_address
+                SELECT 
+                    r.requirement_id,
+                    r.requirement_tracking_no,
+                    r.requirement_file_name,
+                    r.requirement_upload_date,
+                    r.requirement_status_id,
+                    rt.requirement_type_name,
+                    rs.requirement_status_name,
+                    a.application_reference_number,
+                    ap.applicant_id,
+                    ap.applicant_first_name,
+                    ap.applicant_last_name,
+                    ap.applicant_email_address
                 FROM requirement r
-                JOIN requirement_type rt ON rt.type_id = r.requirement_type_id
-                JOIN requirement_status rs ON rs.status_id = r.requirement_status_id
-                JOIN application a ON a.application_id = r.application_id
-                JOIN applicant ap ON ap.applicant_id = a.applicant_id
+                JOIN requirement_type rt 
+                    ON rt.type_id = r.requirement_type_id
+                JOIN requirement_status rs 
+                    ON rs.status_id = r.requirement_status_id
+                JOIN application a 
+                    ON a.application_id = r.application_id
+                JOIN applicant ap 
+                    ON ap.applicant_id = a.applicant_id
                 WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
                 """);
 
@@ -61,8 +69,9 @@ public class RequirementPageController {
         sql.append(" ORDER BY r.requirement_upload_date DESC, r.requirement_id DESC");
 
         model.addAttribute("requirements", jdbc.queryForList(sql.toString(), params.toArray()));
-        addLookups(model);
         model.addAttribute("statusId", statusId);
+
+        addLookups(model);
 
         return "requirements";
     }
@@ -73,11 +82,12 @@ public class RequirementPageController {
         return "requirement-form";
     }
 
-   @PostMapping("/requirements/{id}/status")
+    @PostMapping("/requirements")
     public String create(@RequestParam Integer applicationId,
                          @RequestParam Integer requirementTypeId,
                          @RequestParam MultipartFile file,
                          RedirectAttributes ra) {
+
         Path savedFilePath = null;
 
         try {
@@ -88,7 +98,8 @@ public class RequirementPageController {
             Integer activeApplicationCount = jdbc.queryForObject("""
                     SELECT COUNT(*)
                     FROM application a
-                    JOIN applicant ap ON ap.applicant_id = a.applicant_id
+                    JOIN applicant ap 
+                        ON ap.applicant_id = a.applicant_id
                     WHERE a.application_id = ?
                       AND COALESCE(ap.applicant_is_deleted, 0) = 0
                     """, Integer.class, applicationId);
@@ -97,8 +108,14 @@ public class RequirementPageController {
                 throw new IllegalArgumentException("Selected application does not belong to an active applicant.");
             }
 
-            String originalName = file.getOriginalFilename() == null ? "document.pdf" : file.getOriginalFilename();
-            String ext = originalName.contains(".") ? originalName.substring(originalName.lastIndexOf('.')) : ".pdf";
+            String originalName = file.getOriginalFilename() == null
+                    ? "document.pdf"
+                    : file.getOriginalFilename();
+
+            String ext = originalName.contains(".")
+                    ? originalName.substring(originalName.lastIndexOf('.'))
+                    : ".pdf";
+
             String savedName = UUID.randomUUID() + ext;
 
             Path uploadDir = Paths.get(pdtsProperties.getUploadDir());
@@ -144,6 +161,13 @@ public class RequirementPageController {
             return "redirect:/requirements/new";
         }
     }
+
+    @PostMapping("/requirements/{id}/status")
+    public String updateStatus(@PathVariable Integer id,
+                               @RequestParam Integer statusId,
+                               @RequestParam(required = false) Integer rejectionReasonId,
+                               @RequestParam(required = false) String remarks,
+                               RedirectAttributes ra) {
 
         if (!requirementBelongsToActiveApplicant(id)) {
             ra.addFlashAttribute("error", "Status cannot be updated because this requirement belongs to a deleted applicant.");
@@ -200,8 +224,10 @@ public class RequirementPageController {
         Integer count = jdbc.queryForObject("""
                 SELECT COUNT(*)
                 FROM requirement r
-                JOIN application a ON a.application_id = r.application_id
-                JOIN applicant ap ON ap.applicant_id = a.applicant_id
+                JOIN application a 
+                    ON a.application_id = r.application_id
+                JOIN applicant ap 
+                    ON ap.applicant_id = a.applicant_id
                 WHERE r.requirement_id = ?
                   AND COALESCE(ap.applicant_is_deleted, 0) = 0
                 """, Integer.class, requirementId);
@@ -231,12 +257,14 @@ public class RequirementPageController {
                 """));
 
         model.addAttribute("applications", jdbc.queryForList("""
-                SELECT a.application_id,
-                       a.application_reference_number,
-                       ap.applicant_first_name,
-                       ap.applicant_last_name
+                SELECT 
+                    a.application_id,
+                    a.application_reference_number,
+                    ap.applicant_first_name,
+                    ap.applicant_last_name
                 FROM application a
-                JOIN applicant ap ON ap.applicant_id = a.applicant_id
+                JOIN applicant ap 
+                    ON ap.applicant_id = a.applicant_id
                 WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
                 ORDER BY a.application_id DESC
                 """));
