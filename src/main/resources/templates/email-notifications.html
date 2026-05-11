@@ -12,66 +12,208 @@
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
 
     <style>
-        /* Page-specific Email Notification modal style */
+        /* =========================================================
+           EMAIL NOTIFICATIONS - MATCH TARGET MOCKUP
+           ========================================================= */
+
+        .email-page #topbar {
+            height: 56px;
+            min-height: 56px;
+            padding: 0 28px;
+        }
+
+        .email-page .topbar-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #8B0000;
+        }
+
         .email-page .topbar-right {
             display: flex;
             align-items: center;
             gap: 14px;
         }
 
+        .email-page #topbar .btn {
+            height: 36px;
+            min-height: 36px;
+            padding: 0 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .email-page #content {
+            padding: 28px;
+        }
+
         .email-page .email-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 18px;
+            align-items: start;
         }
 
-        .email-page .send-notification-btn {
-            min-width: 210px;
-            height: 60px;
-            border-radius: 18px;
-            font-size: 15px;
+        .email-page .email-card {
+            background: #ffffff;
+            border: 1px solid rgba(139, 0, 0, 0.10);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(139, 0, 0, 0.05);
+        }
+
+        .email-page .email-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .email-page .email-card-title {
+            margin: 0;
+            color: #8B0000;
+            font-size: 18px;
             font-weight: 800;
         }
 
-        .email-page .email-log-table th {
-            padding: 12px 14px;
+        .email-page .send-notification-btn {
+            height: 36px;
+            min-height: 36px;
+            border-radius: 10px;
+            padding: 0 16px;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: nowrap;
         }
 
-        .email-page .email-log-table td {
-            padding: 13px 14px;
-            vertical-align: middle;
+        .email-page .email-log-list {
+            display: flex;
+            flex-direction: column;
         }
 
-        .email-page .reminder-card {
+        .email-page .email-log-item {
+            display: grid;
+            grid-template-columns: 34px 1fr auto;
+            gap: 14px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0ebe8;
+        }
+
+        .email-page .email-log-item:last-child {
+            border-bottom: none;
+        }
+
+        .email-page .email-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5eded;
+            font-size: 15px;
+        }
+
+        .email-page .email-subject {
+            color: #1f1515;
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .email-page .email-meta {
+            margin-top: 3px;
+            color: #7a7171;
+            font-size: 13px;
+            line-height: 1.35;
+        }
+
+        .email-page .tracking-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 24px;
+            padding: 3px 10px;
+            border-radius: 6px;
+            background: #fff7df;
+            border: 1px solid #d7b95b;
+            color: #765600;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+            margin-left: 5px;
+        }
+
+        .email-page .status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 52px;
+            min-height: 34px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .email-page .status-sent {
+            background: #cdeedc;
+            color: #1f7a52;
+        }
+
+        .email-page .status-queued {
+            background: #fff0c7;
+            color: #a86200;
+        }
+
+        .email-page .reminder-list {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
 
-        .email-page .deadline {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .email-page .reminder-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
             gap: 14px;
+            align-items: center;
             padding: 16px 18px;
             border-radius: 12px;
         }
 
-        .email-page .deadline strong {
+        .email-page .reminder-item.danger {
+            background: #f7eeee;
+        }
+
+        .email-page .reminder-item.warn {
+            background: #fff3d7;
+        }
+
+        .email-page .reminder-item.success {
+            background: #e8f8ef;
+        }
+
+        .email-page .reminder-title {
             color: #8B0000;
             font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 5px;
         }
 
-        .email-page .deadline.danger {
-            background: #fde2e2;
+        .email-page .reminder-meta {
+            color: #7a7171;
+            font-size: 13px;
+            line-height: 1.4;
         }
 
-        .email-page .deadline.warn {
-            background: #fff3c4;
-        }
-
-        .email-page .deadline.ok {
-            background: #e8f9ef;
+        .email-page .reminder-side {
+            color: #8B0000;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
         }
 
         /* Floating modal */
@@ -211,6 +353,32 @@
         }
 
         @media (max-width: 700px) {
+            .email-page #content {
+                padding: 18px;
+            }
+
+            .email-page .email-card {
+                padding: 20px;
+            }
+
+            .email-page .email-card-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .email-page .send-notification-btn {
+                width: 100%;
+            }
+
+            .email-page .email-log-item {
+                grid-template-columns: 34px 1fr;
+            }
+
+            .email-page .email-log-item .status-pill {
+                grid-column: 2;
+                justify-self: start;
+            }
+
             .email-modal {
                 padding: 22px 18px;
             }
@@ -220,10 +388,6 @@
             }
 
             .email-modal-actions .btn {
-                width: 100%;
-            }
-
-            .email-page .send-notification-btn {
                 width: 100%;
             }
         }
@@ -281,7 +445,6 @@
         <header id="topbar">
             <div>
                 <div class="topbar-title">Email Notifications</div>
-                <div class="topbar-subtitle">Automated reminders and registrar communication log.</div>
             </div>
             <div class="topbar-right">
                 <span class="ay-label">AY 2025–2026 · 1st Semester</span>
@@ -291,81 +454,117 @@
 
         <section id="content">
             <div class="email-layout">
-                <section class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Email Log</h2>
+                <section class="email-card">
+                    <div class="email-card-header">
+                        <h2 class="email-card-title">Email Log</h2>
                         <button class="btn btn-primary send-notification-btn" type="button" data-open-email-modal>
                             + Send Notification
                         </button>
                     </div>
 
-                    <div class="table-wrap">
-                        <table class="email-log-table">
-                            <thead>
-                            <tr>
-                                <th>Subject</th>
-                                <th>Tracking</th>
-                                <th>Status</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>
-                                    <div class="td-name">Acknowledgment: PSA Birth Certificate Received</div>
-                                    <div class="td-muted">To: student@example.com · system generated</div>
-                                </td>
-                                <td><span class="tracking-badge">📄 DOC-2026-0001</span></td>
-                                <td><span class="badge badge-received">Sent</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="td-name">Document Rejection Notice</div>
-                                    <div class="td-muted">Reason and resubmission instructions</div>
-                                </td>
-                                <td><span class="tracking-badge">📄 DOC-2026-0002</span></td>
-                                <td><span class="badge badge-received">Sent</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="td-name">Reminder: Pending Graduation Requirements</div>
-                                    <div class="td-muted">Weekly pending reminder</div>
-                                </td>
-                                <td><span class="td-muted">Batch notice</span></td>
-                                <td><span class="badge badge-pending">Queued</span></td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <div class="email-log-list">
+                        <div class="email-log-item">
+                            <div class="email-icon">🔔</div>
+                            <div>
+                                <div class="email-subject">Reminder: Pending Requirements – Please Submit Required Documents</div>
+                                <div class="email-meta">To: juan.delacruz@email.com · 5/11/2026, 3:17:30 PM</div>
+                            </div>
+                            <span class="status-pill status-sent">Sent</span>
+                        </div>
+
+                        <div class="email-log-item">
+                            <div class="email-icon">✅</div>
+                            <div>
+                                <div class="email-subject">
+                                    Acknowledgment: PSA Birth Certificate Received – DOC-2025-45108
+                                </div>
+                                <div class="email-meta">
+                                    To: juan.delacruz@email.com · 5/11/2026, 2:33:55 PM
+                                    <span class="tracking-badge">📄 DOC-2025-45108</span>
+                                </div>
+                            </div>
+                            <span class="status-pill status-sent">Sent</span>
+                        </div>
+
+                        <div class="email-log-item">
+                            <div class="email-icon">✅</div>
+                            <div>
+                                <div class="email-subject">
+                                    Acknowledgment: PSA Birth Certificate Received – DOC-2025-00001
+                                </div>
+                                <div class="email-meta">
+                                    To: juan.delacruz@email.com · 2025-04-01 10:23
+                                    <span class="tracking-badge">📄 DOC-2025-00001</span>
+                                </div>
+                            </div>
+                            <span class="status-pill status-sent">Sent</span>
+                        </div>
+
+                        <div class="email-log-item">
+                            <div class="email-icon">❌</div>
+                            <div>
+                                <div class="email-subject">Document Rejection Notice – Transcript of Records</div>
+                                <div class="email-meta">
+                                    To: pedro.reyes@email.com · 2025-04-03 14:45
+                                    <span class="tracking-badge">📄 DOC-2025-00004</span>
+                                </div>
+                            </div>
+                            <span class="status-pill status-sent">Sent</span>
+                        </div>
+
+                        <div class="email-log-item">
+                            <div class="email-icon">🔔</div>
+                            <div>
+                                <div class="email-subject">Action Required: Resubmission Needed – DOC-2025-00006</div>
+                                <div class="email-meta">
+                                    To: carlos.mendoza@email.com · 2025-04-05 09:12
+                                    <span class="tracking-badge">📄 DOC-2025-00006</span>
+                                </div>
+                            </div>
+                            <span class="status-pill status-sent">Sent</span>
+                        </div>
+
+                        <div class="email-log-item">
+                            <div class="email-icon">🔔</div>
+                            <div>
+                                <div class="email-subject">Reminder: Pending Graduation Requirements</div>
+                                <div class="email-meta">To: maria.santos@email.com · 2025-04-07 08:00</div>
+                            </div>
+                            <span class="status-pill status-sent">Sent</span>
+                        </div>
                     </div>
                 </section>
 
-                <section class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Automated Reminders</h2>
+                <section class="email-card">
+                    <div class="email-card-header">
+                        <h2 class="email-card-title">Automated Reminders</h2>
                     </div>
 
-                    <div class="reminder-card">
-                        <div class="deadline danger">
+                    <div class="reminder-list">
+                        <div class="reminder-item danger">
                             <div>
-                                <strong>Weekly Pending Reminder</strong><br>
-                                <span class="td-muted">Every Monday, 8:00 AM</span>
+                                <div class="reminder-title">Weekly Pending Reminder</div>
+                                <div class="reminder-meta">Every Monday, 8:00 AM — sends to students with pending requirements</div>
+                                <span class="status-pill status-sent" style="margin-top: 8px;">Active</span>
                             </div>
-                            <span class="badge badge-active">Active</span>
+                            <div class="reminder-side">Next: Monday, Apr 14</div>
                         </div>
 
-                        <div class="deadline warn">
+                        <div class="reminder-item warn">
                             <div>
-                                <strong>Deadline Alert</strong><br>
-                                <span class="td-muted">7 days before document deadline</span>
+                                <div class="reminder-title">Deadline Alert</div>
+                                <div class="reminder-meta">7 days before document deadline — sent automatically</div>
+                                <span class="status-pill status-queued" style="margin-top: 8px;">Active</span>
                             </div>
-                            <span class="badge badge-pending">Active</span>
+                            <div class="reminder-side">Triggered when ≤7 days</div>
                         </div>
 
-                        <div class="deadline ok">
+                        <div class="reminder-item success">
                             <div>
-                                <strong>Acknowledgment Receipt</strong><br>
-                                <span class="td-muted">Sent when a document is logged as received</span>
+                                <div class="reminder-title">Acknowledgment Receipt</div>
+                                <div class="reminder-meta">Sent immediately when document is logged as received</div>
+                                <span class="status-pill status-sent" style="margin-top: 8px;">Active</span>
                             </div>
-                            <span class="badge badge-active">Active</span>
                         </div>
                     </div>
                 </section>
