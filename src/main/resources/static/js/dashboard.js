@@ -355,3 +355,15 @@
     });
 
 }());
+
+// Refreshed template helper: clicking a non-interactive applicant row opens its View link.
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('tbody tr').forEach(function (row) {
+        row.addEventListener('click', function (event) {
+            var interactive = event.target.closest('a, button, input, select, textarea, form');
+            if (interactive) return;
+            var viewLink = row.querySelector('a[href*="/applicants/"]');
+            if (viewLink) window.location.href = viewLink.href;
+        });
+    });
+});
