@@ -18,256 +18,275 @@
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
 
     <style>
+        /* =========================================================
+           APPLICANT REGISTRY - MATCH TARGET MOCKUP
+           ========================================================= */
+
+        .applicants-page #topbar {
+            height: 56px !important;
+            min-height: 56px !important;
+            padding: 0 28px !important;
+        }
+
+        .applicants-page .topbar-title {
+            font-size: 20px !important;
+            font-weight: 800 !important;
+            color: #8B0000 !important;
+        }
+
+        .applicants-page .topbar-right {
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important;
+        }
+
+        .applicants-page #topbar .btn,
+        .applicants-page .topbar-right .btn {
+            height: 36px !important;
+            min-height: 36px !important;
+            padding: 0 16px !important;
+            border-radius: 10px !important;
+            font-size: 13px !important;
+            font-weight: 800 !important;
+        }
+
+        .applicants-page #content {
+            padding: 28px !important;
+        }
+
         .applicants-page .registry-card {
-            padding: 24px;
+            padding: 24px !important;
+            border-radius: 12px !important;
+        }
+
+        .applicants-page .card-header {
+            margin-bottom: 18px !important;
+        }
+
+        .applicants-page .card-title {
+            margin: 0 !important;
+            font-size: 18px !important;
+            font-weight: 800 !important;
+            color: #8B0000 !important;
         }
 
         .applicants-page .registry-toolbar {
-            display: grid;
-            grid-template-columns: minmax(340px, 1fr) 190px 150px 190px;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 18px;
+            display: grid !important;
+            grid-template-columns: minmax(520px, 1fr) 220px 160px 220px !important;
+            gap: 12px !important;
+            align-items: center !important;
+            margin-bottom: 18px !important;
         }
 
         .applicants-page .registry-toolbar input,
         .applicants-page .registry-toolbar select {
-            width: 100%;
-            min-height: 44px;
-            border: 1px solid #ddd6cf;
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-family: 'DM Sans', system-ui, sans-serif;
-            font-size: 14px;
-            color: #2c2323;
-            background: #ffffff;
-            outline: none;
+            width: 100% !important;
+            height: 44px !important;
+            min-height: 44px !important;
+            border: 1px solid #ddd6cf !important;
+            border-radius: 10px !important;
+            padding: 0 14px !important;
+            font-family: 'DM Sans', system-ui, sans-serif !important;
+            font-size: 14px !important;
+            color: #2c2323 !important;
+            background: #ffffff !important;
+            outline: none !important;
         }
 
         .applicants-page .registry-toolbar input:focus,
         .applicants-page .registry-toolbar select:focus {
-            border-color: #8B0000;
-            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08);
+            border-color: #8B0000 !important;
+            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08) !important;
         }
 
-        .applicants-page .registry-table th {
-            padding: 12px 14px;
-            white-space: nowrap;
+        .applicants-page .table-wrap {
+            width: 100% !important;
+            overflow-x: auto !important;
         }
 
-        .applicants-page .registry-table td {
-            padding: 12px 14px;
-            vertical-align: middle;
+        .applicants-page .applicant-registry-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            table-layout: fixed !important;
         }
 
-        .applicants-page .program-cell {
-            color: #1a0a0a;
-            font-weight: 500;
-            white-space: nowrap;
+        .applicants-page .applicant-registry-table col:nth-child(1) {
+            width: 180px;
         }
 
-        .applicants-page .action-cell {
-            display: flex;
-            gap: 8px;
-            align-items: center;
+        .applicants-page .applicant-registry-table col:nth-child(2) {
+            width: 220px;
         }
 
-        .applicants-page .action-cell .btn {
-            min-width: 56px;
-            justify-content: center;
+        .applicants-page .applicant-registry-table col:nth-child(3) {
+            width: 190px;
+        }
+
+        .applicants-page .applicant-registry-table col:nth-child(4) {
+            width: 230px;
+        }
+
+        .applicants-page .applicant-registry-table col:nth-child(5) {
+            width: 160px;
+        }
+
+        .applicants-page .applicant-registry-table col:nth-child(6) {
+            width: 210px;
+        }
+
+        .applicants-page .applicant-registry-table col:nth-child(7) {
+            width: 180px;
+        }
+
+        .applicants-page .applicant-registry-table thead th {
+            background: #f5eded !important;
+            color: #8B0000 !important;
+            padding: 12px 14px !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.35px !important;
+            text-align: left !important;
+            white-space: nowrap !important;
+        }
+
+        .applicants-page .applicant-registry-table tbody td {
+            padding: 12px 14px !important;
+            border-bottom: 1px solid #f0ebe8 !important;
+            vertical-align: middle !important;
+            text-align: left !important;
+            font-size: 14px !important;
+            color: #2c2323 !important;
+        }
+
+        .applicants-page .applicant-registry-table tbody tr {
+            height: auto !important;
+        }
+
+        .applicants-page .applicant-registry-table tbody tr:hover {
+            background: #fcfaf9 !important;
         }
 
         .applicants-page .tracking-badge {
-            white-space: nowrap;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            min-width: 150px !important;
+            height: 30px !important;
+            padding: 0 10px !important;
+            border-radius: 7px !important;
+            background: #fff7df !important;
+            border: 1px solid #d7b95b !important;
+            color: #765600 !important;
+            font-size: 13px !important;
+            font-weight: 800 !important;
+            white-space: nowrap !important;
+            margin: 0 !important;
+        }
+
+        .applicants-page .tracking-badge::before {
+            content: "👤";
+            margin-right: 6px;
+            font-size: 12px;
+        }
+
+        .applicants-page .td-name {
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            color: #1f1515 !important;
+            white-space: nowrap !important;
+        }
+
+        .applicants-page .program-cell {
+            display: inline-block !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            color: #1f1515 !important;
+            white-space: nowrap !important;
+        }
+
+        .applicants-page .td-muted {
+            color: #7a7171 !important;
+            white-space: nowrap !important;
+        }
+
+        .applicants-page .badge {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-height: 22px !important;
+            padding: 4px 12px !important;
+            border-radius: 999px !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            white-space: nowrap !important;
+        }
+
+        .applicants-page .badge-col {
+            background: #e6e8ff !important;
+            color: #4c46bd !important;
+        }
+
+        .applicants-page .badge-active {
+            background: #cdeedc !important;
+            color: #1f7a52 !important;
+            text-transform: capitalize !important;
+        }
+
+        .applicants-page .action-cell {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 8px !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            white-space: nowrap !important;
+        }
+
+        .applicants-page .action-cell .btn,
+        .applicants-page .applicant-registry-table .btn {
+            width: auto !important;
+            min-width: 58px !important;
+            height: 32px !important;
+            min-height: 32px !important;
+            padding: 0 12px !important;
+            border-radius: 10px !important;
+            font-size: 13px !important;
+            font-weight: 800 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .applicants-page .empty-state {
+            text-align: center !important;
+            padding: 28px !important;
+            color: #8a7f7f !important;
+            font-weight: 600 !important;
         }
 
         @media (max-width: 1100px) {
             .applicants-page .registry-toolbar {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr 1fr !important;
             }
 
             .applicants-page .registry-toolbar .search-input {
-                grid-column: 1 / -1;
+                grid-column: 1 / -1 !important;
+            }
+
+            .applicants-page .applicant-registry-table {
+                min-width: 1370px !important;
             }
         }
 
         @media (max-width: 700px) {
+            .applicants-page #content {
+                padding: 18px !important;
+            }
+
             .applicants-page .registry-toolbar {
-                grid-template-columns: 1fr;
-            }
-
-            .applicants-page .action-cell {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .applicants-page .action-cell .btn {
-                width: 100%;
+                grid-template-columns: 1fr !important;
             }
         }
-        /* =========================================================
-   APPLICANT REGISTRY - MATCH TARGET MOCKUP
-   ========================================================= */
-
-.applicants-page #topbar {
-    height: 56px !important;
-    min-height: 56px !important;
-    padding: 0 28px !important;
-}
-
-.applicants-page #topbar .btn,
-.applicants-page .topbar-right .btn {
-    height: 36px !important;
-    min-height: 36px !important;
-    padding: 0 16px !important;
-    border-radius: 10px !important;
-    font-size: 13px !important;
-    font-weight: 800 !important;
-}
-
-.applicants-page #content {
-    padding: 28px !important;
-}
-
-.applicants-page .registry-card {
-    padding: 24px !important;
-    border-radius: 12px !important;
-}
-
-.applicants-page .card-header {
-    margin-bottom: 18px !important;
-}
-
-.applicants-page .card-title {
-    font-size: 18px !important;
-    font-weight: 800 !important;
-    color: #8B0000 !important;
-}
-
-.applicants-page .registry-toolbar {
-    display: grid !important;
-    grid-template-columns: minmax(420px, 1fr) 190px 150px 210px !important;
-    gap: 12px !important;
-    align-items: center !important;
-    margin-bottom: 18px !important;
-}
-
-.applicants-page .registry-toolbar input,
-.applicants-page .registry-toolbar select {
-    height: 44px !important;
-    min-height: 44px !important;
-    border-radius: 10px !important;
-    padding: 0 14px !important;
-    font-size: 14px !important;
-}
-
-.applicants-page .table-wrap {
-    width: 100% !important;
-    overflow-x: auto !important;
-}
-
-.applicants-page .registry-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-    table-layout: auto !important;
-}
-
-.applicants-page .registry-table thead th {
-    background: #f5eded !important;
-    color: #8B0000 !important;
-    padding: 12px 14px !important;
-    font-size: 12px !important;
-    font-weight: 800 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.35px !important;
-    text-align: left !important;
-    white-space: nowrap !important;
-}
-
-.applicants-page .registry-table tbody td {
-    padding: 12px 14px !important;
-    border-bottom: 1px solid #f0ebe8 !important;
-    vertical-align: middle !important;
-    font-size: 14px !important;
-}
-
-.applicants-page .registry-table tbody tr {
-    height: auto !important;
-}
-
-.applicants-page .tracking-badge {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 150px !important;
-    height: 30px !important;
-    padding: 0 10px !important;
-    border-radius: 7px !important;
-    font-size: 13px !important;
-    font-weight: 800 !important;
-    white-space: nowrap !important;
-}
-
-.applicants-page .td-name {
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    color: #1f1515 !important;
-    white-space: nowrap !important;
-}
-
-.applicants-page .program-cell {
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    color: #1f1515 !important;
-    white-space: nowrap !important;
-}
-
-.applicants-page .badge {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-height: 22px !important;
-    padding: 4px 12px !important;
-    border-radius: 999px !important;
-    font-size: 12px !important;
-    font-weight: 800 !important;
-    white-space: nowrap !important;
-}
-
-.applicants-page .action-cell {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 8px !important;
-    align-items: center !important;
-    white-space: nowrap !important;
-}
-
-.applicants-page .action-cell .btn,
-.applicants-page .registry-table .btn {
-    min-width: 58px !important;
-    height: 32px !important;
-    min-height: 32px !important;
-    padding: 0 12px !important;
-    border-radius: 10px !important;
-    font-size: 13px !important;
-    font-weight: 800 !important;
-}
-
-@media (max-width: 1100px) {
-    .applicants-page .registry-toolbar {
-        grid-template-columns: 1fr 1fr !important;
-    }
-
-    .applicants-page .registry-toolbar .search-input {
-        grid-column: 1 / -1 !important;
-    }
-}
-
-@media (max-width: 700px) {
-    .applicants-page .registry-toolbar {
-        grid-template-columns: 1fr !important;
-    }
-}
     </style>
 </head>
 
@@ -388,7 +407,17 @@
                 </form>
 
                 <div class="table-wrap">
-                    <table class="registry-table">
+                    <table class="registry-table applicant-registry-table">
+                        <colgroup>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                        </colgroup>
+
                         <thead>
                         <tr>
                             <th>Applicant #</th>
@@ -402,36 +431,36 @@
                         </thead>
 
                         <tbody>
-                        <tr th:if="${applicants.isEmpty()}">
+                        <tr th:if="${applicants == null or #lists.isEmpty(applicants)}">
                             <td colspan="7" class="empty-state">No applicant records found.</td>
                         </tr>
 
                         <tr th:each="a : ${applicants}">
                             <td>
-                              <td>
-    <span class="tracking-badge"
-          th:text="${a['student_tracking_no'] != null ? a['student_tracking_no'] : 'STU-' + a['applicant_id']}">
-        STU-2025-00001
-    </span>
-</td>
+                                <span class="tracking-badge"
+                                      th:text="${a['student_tracking_no'] != null ? a['student_tracking_no'] : 'STU-' + a['applicant_id']}">
+                                    STU-2026-0001
+                                </span>
                             </td>
 
                             <td>
                                 <div class="td-name"
                                      th:text="${a['applicant_last_name'] + ', ' + a['applicant_first_name']}">
-                                    Dela Cruz, Juan S.
+                                    Dela Cruz, Juan
                                 </div>
                             </td>
 
-                           <td class="program-cell"
-    th:text="${a['program_code'] != null ? a['program_code'] : (a['program_name'] != null ? a['program_name'] : '—')}">
-    BSIT
-</td>
+                            <td>
+                                <span class="program-cell"
+                                      th:text="${a['program_code'] != null ? a['program_code'] : (a['program_name'] != null ? a['program_name'] : '—')}">
+                                    BSIT
+                                </span>
+                            </td>
 
                             <td>
                                 <span class="badge badge-col"
                                       th:text="${a['category_name']}">
-                                    Curriculum
+                                    Senior High School
                                 </span>
                             </td>
 
@@ -442,21 +471,25 @@
                                 </span>
                             </td>
 
-                            <td class="td-muted"
-                                th:text="${a['applicant_region']}">
-                                NCR
+                            <td>
+                                <span class="td-muted"
+                                      th:text="${a['applicant_region']}">
+                                    NCR
+                                </span>
                             </td>
 
-                            <td class="action-cell">
-                                <a class="btn btn-outline btn-sm"
-                                   th:href="@{/applicants/{id}(id=${a['applicant_id']})}">
-                                    View
-                                </a>
+                            <td>
+                                <div class="action-cell">
+                                    <a class="btn btn-outline btn-sm"
+                                       th:href="@{/applicants/{id}(id=${a['applicant_id']})}">
+                                        View
+                                    </a>
 
-                                <a class="btn btn-outline btn-sm"
-                                   th:href="@{/applicants/{id}/edit(id=${a['applicant_id']})}">
-                                    Edit
-                                </a>
+                                    <a class="btn btn-outline btn-sm"
+                                       th:href="@{/applicants/{id}/edit(id=${a['applicant_id']})}">
+                                        Edit
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         </tbody>
