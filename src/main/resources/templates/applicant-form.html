@@ -234,7 +234,7 @@
 
         <form class="modal-applicant-form"
               method="post"
-              th:action="${mode == 'edit' ? '/applicants/' + applicant['applicant_id'] + '/edit' : '/applicants'}">
+              th:action="${mode == 'edit'} ? @{/applicants/{id}/edit(id=${applicant['applicant_id']})} : @{/applicants}">
 
             <!-- PERSONAL INFORMATION -->
             <div class="modal-section">
@@ -277,7 +277,7 @@
 
                     <div class="form-group">
                         <label for="sex">Sex</label>
-                        <select id="sex" name="sex">
+                        <select id="sex" name="sex" required>
                             <option value="1" th:selected="${applicant == null or applicant['applicant_sex'] == 1}">Male</option>
                             <option value="2" th:selected="${applicant != null and applicant['applicant_sex'] == 2}">Female</option>
                         </select>
@@ -285,7 +285,7 @@
 
                     <div class="form-group">
                         <label for="civilStatus">Civil Status</label>
-                        <select id="civilStatus" name="civilStatus">
+                        <select id="civilStatus" name="civilStatus" required>
                             <option value="1" th:selected="${applicant == null or applicant['applicant_civil_status'] == 1}">Single</option>
                             <option value="2" th:selected="${applicant != null and applicant['applicant_civil_status'] == 2}">Married</option>
                         </select>
@@ -321,7 +321,7 @@
 
                     <div class="form-group">
                         <label for="enrollmentStatus">Enrollment Status</label>
-                        <select id="enrollmentStatus" name="enrollmentStatus">
+                        <select id="enrollmentStatus" name="enrollmentStatus" required>
                             <option value="continuing"
                                     th:selected="${applicant == null or applicant['applicant_enrollment_status'] == 'continuing'}">
                                 Continuing
@@ -330,12 +330,28 @@
                                     th:selected="${applicant != null and applicant['applicant_enrollment_status'] == 'on_leave'}">
                                 On Leave
                             </option>
+                            <option value="graduating"
+                                    th:selected="${applicant != null and applicant['applicant_enrollment_status'] == 'graduating'}">
+                                Graduating
+                            </option>
+                            <option value="dismissed"
+                                    th:selected="${applicant != null and applicant['applicant_enrollment_status'] == 'dismissed'}">
+                                Dismissed
+                            </option>
                         </select>
                     </div>
 
                     <div class="form-group full-width">
                         <label for="categoryId">Educational Background</label>
                         <select id="categoryId" name="categoryId" required>
+                            <option value="" disabled th:selected="${applicant == null}">
+                                Select educational background
+                            </option>
+
+                            <!-- IMPORTANT:
+                                 The value must be category_id, not category_code like COL-004.
+                                 This prevents: For input string: "COL-004"
+                            -->
                             <option th:each="c : ${categories}"
                                     th:value="${c['category_id']}"
                                     th:selected="${applicant != null and applicant['educational_background_category_id'] == c['category_id']}"
@@ -425,6 +441,11 @@
                     <div class="form-group">
                         <label for="programId">Program</label>
                         <select id="programId" name="programId" required>
+                            <option value="" disabled selected>Select program</option>
+
+                            <!-- IMPORTANT:
+                                 The value must be program_id, not program_code.
+                            -->
                             <option th:each="p : ${programs}"
                                     th:value="${p['program_id']}"
                                     th:text="${p['program_code'] + ' — ' + p['program_name']}">
@@ -436,6 +457,11 @@
                     <div class="form-group">
                         <label for="campusId">Campus</label>
                         <select id="campusId" name="campusId" required>
+                            <option value="" disabled selected>Select campus</option>
+
+                            <!-- IMPORTANT:
+                                 The value must be campus_id.
+                            -->
                             <option th:each="c : ${campuses}"
                                     th:value="${c['campus_id']}"
                                     th:text="${c['campus_name']}">
@@ -447,6 +473,9 @@
                     <div class="form-group">
                         <label for="applicationStatusId">Application Status</label>
                         <select id="applicationStatusId" name="applicationStatusId" required>
+                            <!-- IMPORTANT:
+                                 The value must be application_status_id.
+                            -->
                             <option th:each="s : ${applicationStatuses}"
                                     th:value="${s['application_status_id']}"
                                     th:text="${s['application_status_name']}">
@@ -457,7 +486,10 @@
 
                     <div class="form-group">
                         <label for="semester">Semester</label>
-                        <input id="semester" name="semester" value="First Semester" required>
+                        <input id="semester"
+                               name="semester"
+                               value="First Semester"
+                               required>
                     </div>
 
                     <div class="form-group">
