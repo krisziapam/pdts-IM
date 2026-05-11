@@ -245,10 +245,12 @@
 
                         <tr th:each="a : ${applicants}">
                             <td>
-                                <span class="tracking-badge"
-                                      th:text="${a['student_tracking_no']}">
-                                    STU-2025-00001
-                                </span>
+                              <td>
+    <span class="tracking-badge"
+          th:text="${a['student_tracking_no'] != null ? a['student_tracking_no'] : 'STU-' + a['applicant_id']}">
+        STU-2025-00001
+    </span>
+</td>
                             </td>
 
                             <td>
@@ -258,10 +260,10 @@
                                 </div>
                             </td>
 
-                            <td class="program-cell"
-                                th:text="${a['program_code'] != null ? a['program_code'] : '—'}">
-                                BSIT
-                            </td>
+                           <td class="program-cell"
+    th:text="${a['program_code'] != null ? a['program_code'] : (a['program_name'] != null ? a['program_name'] : '—')}">
+    BSIT
+</td>
 
                             <td>
                                 <span class="badge badge-col"
