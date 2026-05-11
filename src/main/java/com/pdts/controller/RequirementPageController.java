@@ -145,13 +145,6 @@ public class RequirementPageController {
         }
     }
 
-    @PostMapping("/requirements/{id}/status")
-    public String updateStatus(@PathVariable Integer id,
-                               @RequestParam Integer statusId,
-                               @RequestParam(required = false) Integer rejectionReasonId,
-                               @RequestParam(required = false) String remarks,
-                               RedirectAttributes ra) {
-
         if (!requirementBelongsToActiveApplicant(id)) {
             ra.addFlashAttribute("error", "Status cannot be updated because this requirement belongs to a deleted applicant.");
             return "redirect:/requirements";
