@@ -453,6 +453,8 @@
         </header>
 
         <section id="content">
+            <div th:if="${success}" class="flash success" th:text="${success}"></div>
+<div th:if="${error}" class="flash error" th:text="${error}"></div>
             <div class="email-layout">
                 <section class="email-card">
                     <div class="email-card-header">
@@ -581,8 +583,8 @@
             <button type="button" class="email-modal-close" data-close-email-modal aria-label="Close">&times;</button>
         </div>
 
-        <form class="email-modal-form" id="emailNotificationForm">
-            <div class="form-group">
+<form class="email-modal-form" id="emailNotificationForm" method="post" th:action="@{/email-notifications/send}">
+        <div class="form-group">
                 <label for="emailRecipient">Recipient</label>
                 <select id="emailRecipient" name="recipient">
                     <option value="juan.delacruz@email.com">Dela Cruz, Juan S. (juan.delacruz@email.com)</option>
@@ -631,7 +633,7 @@ Thank you.</textarea>
 
             <div class="email-modal-actions">
                 <button type="button" class="btn btn-outline" data-close-email-modal>Cancel</button>
-                <button type="button" class="btn btn-primary" data-send-email-preview>Send Email</button>
+                <button type="submit" class="btn btn-primary">Send Email</button>
             </div>
         </form>
     </div>
