@@ -1,138 +1,112 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <title>Documents</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documents</title>
 
-    <!-- Favicon / Browser Tab Icon -->
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
     <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
-
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/assets/favicon-32x32.png}" href="/assets/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" th:href="@{/assets/favicon-16x16.png}" href="/assets/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" th:href="@{/assets/apple-touch-icon.png}" href="/assets/apple-touch-icon.png">
 
-    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
 </head>
-
 <body>
-<div class="shell">
-
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-mark">PUP</div>
-            <div>
-                <div class="brand-title">Document Tracking System</div>
-                <span class="brand-subtitle">Open University System</span>
+<div id="app">
+    <aside id="sidebar">
+        <div class="sb-logo">
+            <div class="sb-logo-top">
+                <img th:src="@{/assets/logo.png}" src="/assets/logo.png" alt="PUP Logo">
+                <div>
+                    <div class="sb-logo-text">PUPOUS Registrar</div>
+                    <div class="sb-system-name">PDTS System</div>
+                </div>
             </div>
+            <div class="sb-logo-sub">POLYTECHNIC UNIVERSITY OF THE PHILIPPINES</div>
         </div>
 
-        <nav class="nav">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/applicants">Applicants</a>
-            <a class="active" href="/requirements">Documents</a>
-            <a href="/requirements/new">Upload Document</a>
-            <a href="/users">Staff Accounts</a>
-            <a href="/logout">Logout</a>
+        <nav class="sb-section" aria-label="Main navigation">
+            <div class="sb-section-label">Management</div>
+            <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Main Dashboard</a>
+            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Applicants</a>
+            <a class="sb-nav-item" th:href="@{/applicants/new}" href="/applicants/new"><span class="icon">+</span>New Applicant</a>
+            <a class="sb-nav-item active" th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Documents</a>
+            <a class="sb-nav-item" th:href="@{/requirements/new}" href="/requirements/new"><span class="icon">⇧</span>Upload Document</a>
+            <a class="sb-nav-item" th:href="@{/users}" href="/users"><span class="icon">♙</span>Staff Accounts</a>
+            <a class="sb-nav-item" th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Activity Logs</a>
         </nav>
+
+        <div class="sb-bottom">
+            <div class="sb-user">
+                <div class="sb-avatar">ST</div>
+                <div class="sb-user-info">
+                    <div>Staff User</div>
+                    <div class="sb-user-role">Registrar Office</div>
+                </div>
+            </div>
+            <a class="sb-nav-item logout" th:href="@{/logout}" href="/logout"><span class="icon">↪</span>Logout</a>
+        </div>
     </aside>
 
-    <main class="main">
-
-        <header class="topbar">
+    <main id="main">
+        <header id="topbar">
             <div>
-                <h1>Documents</h1>
-                <p class="lead">Review, verify, reject, or mark documents for resubmission.</p>
+                <div class="topbar-title">Documents</div>
+                <div class="topbar-subtitle">Review, verify, reject, or mark documents for resubmission.</div>
             </div>
-
-            <a class="btn gold" href="/requirements/new">Upload Document</a>
+            <div class="topbar-right">
+                <a class="btn btn-gold" th:href="@{/requirements/new}" href="/requirements/new">Upload Document</a>
+            </div>
         </header>
 
-        <div th:if="${success}" class="flash success" th:text="${success}"></div>
-        <div th:if="${error}" class="flash error" th:text="${error}"></div>
+        <section id="content">
+            <div th:if="${success}" class="flash success" th:text="${success}"></div>
+            <div th:if="${error}" class="flash error" th:text="${error}"></div>
 
-        <form class="filters" method="get" action="/requirements">
-            <select name="statusId">
-                <option value="">All Statuses</option>
-                <option th:each="s : ${statuses}"
-                        th:value="${s['status_id']}"
-                        th:selected="${statusId == s['status_id']}"
-                        th:text="${s['requirement_status_name']}">
-                </option>
-            </select>
+            <section class="card mb-lg">
+                <form class="filter-row" method="get" th:action="@{/requirements}" action="/requirements">
+                    <select class="filter-select" name="statusId">
+                        <option value="">All Statuses</option>
+                        <option th:each="s : ${statuses}" th:value="${s['status_id']}" th:selected="${statusId == s['status_id']}" th:text="${s['requirement_status_name']}"></option>
+                    </select>
+                    <button class="btn btn-primary" type="submit">Filter</button>
+                    <a class="btn btn-outline" th:href="@{/requirements}" href="/requirements">Clear</a>
+                </form>
+            </section>
 
-            <button class="btn" type="submit">Filter</button>
-            <a class="btn secondary" href="/requirements">Clear</a>
-        </form>
-
-        <table>
-            <thead>
-            <tr>
-                <th>Tracking</th>
-                <th>Applicant</th>
-                <th>Reference</th>
-                <th>Type</th>
-                <th>File</th>
-                <th>Status</th>
-                <th>Update Status</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            <tr th:if="${requirements.isEmpty()}">
-                <td colspan="7">No uploaded documents yet.</td>
-            </tr>
-
-            <tr th:each="r : ${requirements}">
-                <td th:text="${r['requirement_tracking_no']}">DOC</td>
-
-                <td>
-                    <a th:href="@{/applicants/{id}(id=${r['applicant_id']})}"
-                       th:text="${r['applicant_first_name'] + ' ' + r['applicant_last_name']}">
-                        Name
-                    </a>
-                </td>
-
-                <td th:text="${r['application_reference_number']}">APP</td>
-                <td th:text="${r['requirement_type_name']}">Type</td>
-                <td th:text="${r['requirement_file_name']}">file</td>
-
-                <td>
-                    <span class="badge" th:text="${r['requirement_status_name']}">Status</span>
-                </td>
-
-                <td>
-                    <form class="inline-form"
-                          method="post"
-                          th:action="@{/requirements/{id}/status(id=${r['requirement_id']})}">
-
-                        <select name="statusId" required>
-                            <option th:each="s : ${statuses}"
-                                    th:value="${s['status_id']}"
-                                    th:selected="${r['requirement_status_id'] == s['status_id']}"
-                                    th:text="${s['requirement_status_name']}">
-                            </option>
-                        </select>
-
-                        <select name="rejectionReasonId">
-                            <option value="">Reason</option>
-                            <option th:each="rr : ${rejectionReasons}"
-                                    th:value="${rr['rejection_reason_id']}"
-                                    th:text="${rr['rejection_reason_name']}">
-                            </option>
-                        </select>
-
-                        <input name="remarks" placeholder="Remarks">
-
-                        <button class="btn secondary" type="submit">Save</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-
+            <section class="card">
+                <div class="card-header"><h2 class="card-title">Document Queue</h2></div>
+                <div class="table-wrap"><table>
+                    <thead><tr><th>Tracking</th><th>Applicant</th><th>Reference</th><th>Type</th><th>File</th><th>Status</th><th>Update Status</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${requirements.isEmpty()}"><td colspan="7" class="empty-state">No uploaded documents yet.</td></tr>
+                    <tr th:each="r : ${requirements}">
+                        <td><span class="mono" th:text="${r['requirement_tracking_no']}">DOC</span></td>
+                        <td><a class="table-link" th:href="@{/applicants/{id}(id=${r['applicant_id']})}" th:text="${r['applicant_first_name'] + ' ' + r['applicant_last_name']}">Name</a></td>
+                        <td th:text="${r['application_reference_number']}">APP</td>
+                        <td th:text="${r['requirement_type_name']}">Type</td>
+                        <td class="td-muted" th:text="${r['requirement_file_name']}">file</td>
+                        <td><span class="badge" th:text="${r['requirement_status_name']}">Status</span></td>
+                        <td>
+                            <form class="inline-form" method="post" th:action="@{/requirements/{id}/status(id=${r['requirement_id']})}">
+                                <select name="statusId" required><option th:each="s : ${statuses}" th:value="${s['status_id']}" th:selected="${r['requirement_status_id'] == s['status_id']}" th:text="${s['requirement_status_name']}"></option></select>
+                                <select name="rejectionReasonId"><option value="">Reason</option><option th:each="rr : ${rejectionReasons}" th:value="${rr['rejection_reason_id']}" th:text="${rr['rejection_reason_name']}"></option></select>
+                                <input name="remarks" placeholder="Remarks">
+                                <button class="btn btn-outline btn-sm" type="submit">Save</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table></div>
+            </section>
+        </section>
     </main>
 </div>
+<script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
 </body>
 </html>
