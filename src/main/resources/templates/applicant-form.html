@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Applicant Form</title>
 
-    <!-- Favicon / Browser Tab Icon -->
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
     <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
 
@@ -49,30 +49,39 @@
         </header>
 
         <div th:if="${error}" class="flash error" th:text="${error}"></div>
+        <div th:if="${success}" class="flash success" th:text="${success}"></div>
 
-        <form class="card" method="post" th:action="${mode == 'edit' ? '/applicants/' + applicant['applicant_id'] + '/edit' : '/applicants'}">
+        <form class="card"
+              method="post"
+              th:action="${mode == 'edit' ? '/applicants/' + applicant['applicant_id'] + '/edit' : '/applicants'}">
 
             <h2>Personal Information</h2>
 
             <div class="form-grid">
                 <label>
                     First Name
-                    <input name="firstName" required th:value="${applicant != null ? applicant['applicant_first_name'] : ''}">
+                    <input name="firstName"
+                           required
+                           th:value="${applicant != null ? applicant['applicant_first_name'] : ''}">
                 </label>
 
                 <label>
                     Middle Name
-                    <input name="middleName" th:value="${applicant != null ? applicant['applicant_middle_name'] : ''}">
+                    <input name="middleName"
+                           th:value="${applicant != null ? applicant['applicant_middle_name'] : ''}">
                 </label>
 
                 <label>
                     Last Name
-                    <input name="lastName" required th:value="${applicant != null ? applicant['applicant_last_name'] : ''}">
+                    <input name="lastName"
+                           required
+                           th:value="${applicant != null ? applicant['applicant_last_name'] : ''}">
                 </label>
 
                 <label>
                     Suffix
-                    <input name="suffix" th:value="${applicant != null ? applicant['applicant_suffix'] : ''}">
+                    <input name="suffix"
+                           th:value="${applicant != null ? applicant['applicant_suffix'] : ''}">
                 </label>
 
                 <label>
@@ -93,24 +102,38 @@
 
                 <label>
                     Birth Date
-                    <input type="date" name="birthDate" required th:value="${applicant != null ? applicant['applicant_birth_date'] : ''}">
+                    <input type="date"
+                           name="birthDate"
+                           required
+                           th:value="${applicant != null ? applicant['applicant_birth_date'] : ''}">
                 </label>
 
                 <label>
                     Email
-                    <input type="email" name="email" required th:value="${applicant != null ? applicant['applicant_email_address'] : ''}">
+                    <input type="email"
+                           name="email"
+                           required
+                           th:value="${applicant != null ? applicant['applicant_email_address'] : ''}">
                 </label>
 
                 <label>
                     Contact Number
-                    <input name="contactNumber" required th:value="${applicant != null ? applicant['applicant_contact_number'] : ''}">
+                    <input name="contactNumber"
+                           required
+                           th:value="${applicant != null ? applicant['applicant_contact_number'] : ''}">
                 </label>
 
                 <label>
                     Enrollment Status
                     <select name="enrollmentStatus">
-                        <option value="continuing" th:selected="${applicant == null or applicant['applicant_enrollment_status'] == 'continuing'}">Continuing</option>
-                        <option value="on_leave" th:selected="${applicant != null and applicant['applicant_enrollment_status'] == 'on_leave'}">On Leave</option>
+                        <option value="continuing"
+                                th:selected="${applicant == null or applicant['applicant_enrollment_status'] == 'continuing'}">
+                            Continuing
+                        </option>
+                        <option value="on_leave"
+                                th:selected="${applicant != null and applicant['applicant_enrollment_status'] == 'on_leave'}">
+                            On Leave
+                        </option>
                     </select>
                 </label>
 
@@ -131,32 +154,113 @@
             <div class="form-grid">
                 <label class="full">
                     House No. / Street
-                    <input name="street" th:value="${applicant != null ? applicant['applicant_house_number_street'] : ''}">
+                    <input name="street"
+                           th:value="${applicant != null ? applicant['applicant_house_number_street'] : ''}">
                 </label>
 
                 <label>
                     Barangay
-                    <input name="barangay" th:value="${applicant != null ? applicant['applicant_barangay'] : ''}">
+                    <input name="barangay"
+                           th:value="${applicant != null ? applicant['applicant_barangay'] : ''}">
                 </label>
 
                 <label>
                     City / Municipality
-                    <input name="city" th:value="${applicant != null ? applicant['applicant_city_municipality'] : ''}">
+                    <input name="city"
+                           th:value="${applicant != null ? applicant['applicant_city_municipality'] : ''}">
                 </label>
 
                 <label>
                     Province
-                    <input name="province" th:value="${applicant != null ? applicant['applicant_province'] : ''}">
+                    <input name="province"
+                           th:value="${applicant != null ? applicant['applicant_province'] : ''}">
                 </label>
 
                 <label>
                     Region
-                    <input name="region" th:value="${applicant != null ? applicant['applicant_region'] : ''}">
+                    <select name="region" required>
+                        <option value="" disabled th:selected="${applicant == null or applicant['applicant_region'] == null or applicant['applicant_region'] == ''}">
+                            Select region
+                        </option>
+
+                        <option value="NCR" th:selected="${applicant != null and applicant['applicant_region'] == 'NCR'}">
+                            NCR — National Capital Region
+                        </option>
+
+                        <option value="CAR" th:selected="${applicant != null and applicant['applicant_region'] == 'CAR'}">
+                            CAR — Cordillera Administrative Region
+                        </option>
+
+                        <option value="Region I" th:selected="${applicant != null and applicant['applicant_region'] == 'Region I'}">
+                            Region I — Ilocos Region
+                        </option>
+
+                        <option value="Region II" th:selected="${applicant != null and applicant['applicant_region'] == 'Region II'}">
+                            Region II — Cagayan Valley
+                        </option>
+
+                        <option value="Region III" th:selected="${applicant != null and applicant['applicant_region'] == 'Region III'}">
+                            Region III — Central Luzon
+                        </option>
+
+                        <option value="CALABARZON" th:selected="${applicant != null and applicant['applicant_region'] == 'CALABARZON'}">
+                            Region IV-A — CALABARZON
+                        </option>
+
+                        <option value="MIMAROPA" th:selected="${applicant != null and applicant['applicant_region'] == 'MIMAROPA'}">
+                            MIMAROPA Region — Region IV-B
+                        </option>
+
+                        <option value="Region V" th:selected="${applicant != null and applicant['applicant_region'] == 'Region V'}">
+                            Region V — Bicol Region
+                        </option>
+
+                        <option value="Region VI" th:selected="${applicant != null and applicant['applicant_region'] == 'Region VI'}">
+                            Region VI — Western Visayas
+                        </option>
+
+                        <option value="NIR" th:selected="${applicant != null and applicant['applicant_region'] == 'NIR'}">
+                            NIR — Negros Island Region
+                        </option>
+
+                        <option value="Region VII" th:selected="${applicant != null and applicant['applicant_region'] == 'Region VII'}">
+                            Region VII — Central Visayas
+                        </option>
+
+                        <option value="Region VIII" th:selected="${applicant != null and applicant['applicant_region'] == 'Region VIII'}">
+                            Region VIII — Eastern Visayas
+                        </option>
+
+                        <option value="Region IX" th:selected="${applicant != null and applicant['applicant_region'] == 'Region IX'}">
+                            Region IX — Zamboanga Peninsula
+                        </option>
+
+                        <option value="Region X" th:selected="${applicant != null and applicant['applicant_region'] == 'Region X'}">
+                            Region X — Northern Mindanao
+                        </option>
+
+                        <option value="Region XI" th:selected="${applicant != null and applicant['applicant_region'] == 'Region XI'}">
+                            Region XI — Davao Region
+                        </option>
+
+                        <option value="Region XII" th:selected="${applicant != null and applicant['applicant_region'] == 'Region XII'}">
+                            Region XII — SOCCSKSARGEN
+                        </option>
+
+                        <option value="Region XIII" th:selected="${applicant != null and applicant['applicant_region'] == 'Region XIII'}">
+                            Region XIII — Caraga
+                        </option>
+
+                        <option value="BARMM" th:selected="${applicant != null and applicant['applicant_region'] == 'BARMM'}">
+                            BARMM — Bangsamoro Autonomous Region in Muslim Mindanao
+                        </option>
+                    </select>
                 </label>
 
                 <label>
                     ZIP Code
-                    <input name="zipCode" th:value="${applicant != null ? applicant['applicant_zip_code'] : ''}">
+                    <input name="zipCode"
+                           th:value="${applicant != null ? applicant['applicant_zip_code'] : ''}">
                 </label>
             </div>
 
