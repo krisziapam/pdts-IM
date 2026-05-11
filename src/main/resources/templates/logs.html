@@ -86,8 +86,9 @@
                             <td th:text="${l['user_username']}">User</td>
                             <td><span class="badge badge-rejected" th:text="${l['user_activity_log_action_type']}">Action</span></td>
                             <td class="td-muted" th:text="${l['user_activity_log_entity_type']}">Entity</td>
-                            <td><span class="tracking-badge" th:text="${l['user_activity_log_id']}">ID</span></td>
-                            <td class="td-muted">—</td>
+                          <td><span class="tracking-badge" th:text="${l['archived_record_id'] != null ? l['archived_record_id'] : l['user_activity_log_id']}">ID</span></td>
+                            
+                           <td class="td-muted" th:text="${l['user_activity_log_ip_address'] != null ? l['user_activity_log_ip_address'] : '—'}">IP</td>
                             <td th:text="${l['user_activity_log_description']}">Details</td>
                         </tr>
                         </tbody>
