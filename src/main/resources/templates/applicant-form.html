@@ -1,199 +1,480 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Add New Applicant</title>
+    <title th:text="${mode == 'edit' ? 'Edit Applicant' : 'Add New Applicant'}">Add New Applicant</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
+
+    <style>
+        body.modal-form-page {
+            min-height: 100vh;
+            margin: 0;
+            background: #f5eded;
+            font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #1a0a0a;
+        }
+
+        .modal-form-backdrop {
+            min-height: 100vh;
+            padding: 42px 24px;
+            background: rgba(43, 23, 23, 0.45);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .modal-form-card {
+            width: 100%;
+            max-width: 1090px;
+            max-height: 92vh;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 22px;
+            padding: 34px 38px 34px;
+            box-shadow: 0 18px 50px rgba(36, 17, 17, 0.18);
+        }
+
+        .modal-form-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 26px;
+        }
+
+        .modal-form-header h1 {
+            margin: 0;
+            color: #8B0000;
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .modal-close-btn {
+            text-decoration: none;
+            color: #adadad;
+            font-size: 38px;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .modal-close-btn:hover {
+            color: #8B0000;
+        }
+
+        .modal-applicant-form {
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+        }
+
+        .modal-section {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .modal-section-title {
+            color: #C8A951;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eadfca;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px 22px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            color: #8B0000;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            min-height: 56px;
+            border: 1px solid #ddd6cf;
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 14px 18px;
+            font-size: 15px;
+            color: #2c2323;
+            outline: none;
+            box-shadow: none;
+            font-family: inherit;
+        }
+
+        .form-group input::placeholder {
+            color: #888;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #8B0000;
+            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08);
+        }
+
+        .modal-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 14px;
+            padding-top: 8px;
+        }
+
+        .modal-btn-outline {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 122px;
+            height: 52px;
+            padding: 0 24px;
+            border: 1.5px solid #8B0000;
+            border-radius: 16px;
+            background: #fff;
+            color: #8B0000;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .modal-btn-outline:hover {
+            background: #faf5f2;
+        }
+
+        .modal-btn-primary {
+            min-width: 200px;
+            height: 52px;
+            border: none;
+            border-radius: 16px;
+            background: #8B0000;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .modal-btn-primary:hover {
+            background: #74170f;
+        }
+
+        .flash {
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .flash.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .flash.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        @media (max-width: 900px) {
+            .modal-form-card {
+                padding: 24px 20px 24px;
+                max-height: 94vh;
+            }
+
+            .modal-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: auto;
+            }
+
+            .modal-form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .modal-btn-outline,
+            .modal-btn-primary {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
+
 <body class="modal-form-page">
 
 <div class="modal-form-backdrop">
     <div class="modal-form-card">
         <div class="modal-form-header">
-            <h1>Add New Applicant</h1>
-            <a th:href="@{/applicants}" class="modal-close-btn" aria-label="Close">&times;</a>
+            <h1 th:text="${mode == 'edit' ? 'Edit Applicant' : 'Add New Applicant'}">Add New Applicant</h1>
+            <a th:href="@{/applicants}" href="/applicants" class="modal-close-btn" aria-label="Close">&times;</a>
         </div>
 
-        <form th:action="@{/applicants/save}" th:object="${applicant}" method="post" class="modal-applicant-form">
+        <div th:if="${error}" class="flash error" th:text="${error}"></div>
+        <div th:if="${success}" class="flash success" th:text="${success}"></div>
+
+        <form class="modal-applicant-form"
+              method="post"
+              th:action="${mode == 'edit' ? '/applicants/' + applicant['applicant_id'] + '/edit' : '/applicants'}">
 
             <!-- PERSONAL INFORMATION -->
             <div class="modal-section">
-                <div class="modal-section-title">PERSONAL INFORMATION</div>
+                <div class="modal-section-title">Personal Information</div>
 
                 <div class="modal-grid">
                     <div class="form-group">
-                        <label>FIRST NAME</label>
-                        <input type="text" th:field="*{firstName}" placeholder="Given name">
+                        <label for="firstName">First Name</label>
+                        <input id="firstName"
+                               name="firstName"
+                               required
+                               placeholder="Given name"
+                               th:value="${applicant != null ? applicant['applicant_first_name'] : ''}">
                     </div>
 
                     <div class="form-group">
-                        <label>MIDDLE NAME</label>
-                        <input type="text" th:field="*{middleName}" placeholder="Middle name">
+                        <label for="middleName">Middle Name</label>
+                        <input id="middleName"
+                               name="middleName"
+                               placeholder="Middle name"
+                               th:value="${applicant != null ? applicant['applicant_middle_name'] : ''}">
                     </div>
 
                     <div class="form-group">
-                        <label>LAST NAME</label>
-                        <input type="text" th:field="*{lastName}" placeholder="Surname">
+                        <label for="lastName">Last Name</label>
+                        <input id="lastName"
+                               name="lastName"
+                               required
+                               placeholder="Surname"
+                               th:value="${applicant != null ? applicant['applicant_last_name'] : ''}">
                     </div>
 
                     <div class="form-group">
-                        <label>SEX</label>
-                        <select th:field="*{sex}">
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
+                        <label for="suffix">Suffix</label>
+                        <input id="suffix"
+                               name="suffix"
+                               placeholder="e.g. Jr., III"
+                               th:value="${applicant != null ? applicant['applicant_suffix'] : ''}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sex">Sex</label>
+                        <select id="sex" name="sex">
+                            <option value="1" th:selected="${applicant == null or applicant['applicant_sex'] == 1}">Male</option>
+                            <option value="2" th:selected="${applicant != null and applicant['applicant_sex'] == 2}">Female</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>CIVIL STATUS</label>
-                        <select th:field="*{civilStatus}">
-                            <option value="Single">Single</option>
-                            <option value="Married">Married</option>
-                            <option value="Widowed">Widowed</option>
-                            <option value="Separated">Separated</option>
+                        <label for="civilStatus">Civil Status</label>
+                        <select id="civilStatus" name="civilStatus">
+                            <option value="1" th:selected="${applicant == null or applicant['applicant_civil_status'] == 1}">Single</option>
+                            <option value="2" th:selected="${applicant != null and applicant['applicant_civil_status'] == 2}">Married</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>DATE OF BIRTH</label>
-                        <input type="date" th:field="*{birthDate}">
+                        <label for="birthDate">Date of Birth</label>
+                        <input id="birthDate"
+                               type="date"
+                               name="birthDate"
+                               required
+                               th:value="${applicant != null ? applicant['applicant_birth_date'] : ''}">
                     </div>
 
                     <div class="form-group">
-                        <label>EMAIL ADDRESS</label>
-                        <input type="email" th:field="*{email}" placeholder="student@email.com">
+                        <label for="email">Email Address</label>
+                        <input id="email"
+                               type="email"
+                               name="email"
+                               required
+                               placeholder="student@email.com"
+                               th:value="${applicant != null ? applicant['applicant_email_address'] : ''}">
                     </div>
 
                     <div class="form-group">
-                        <label>CONTACT NUMBER</label>
-                        <input type="text" th:field="*{contactNumber}" placeholder="09XX-XXX-XXXX">
+                        <label for="contactNumber">Contact Number</label>
+                        <input id="contactNumber"
+                               name="contactNumber"
+                               required
+                               placeholder="09XX-XXX-XXXX"
+                               th:value="${applicant != null ? applicant['applicant_contact_number'] : ''}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="enrollmentStatus">Enrollment Status</label>
+                        <select id="enrollmentStatus" name="enrollmentStatus">
+                            <option value="continuing"
+                                    th:selected="${applicant == null or applicant['applicant_enrollment_status'] == 'continuing'}">
+                                Continuing
+                            </option>
+                            <option value="on_leave"
+                                    th:selected="${applicant != null and applicant['applicant_enrollment_status'] == 'on_leave'}">
+                                On Leave
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="categoryId">Educational Background</label>
+                        <select id="categoryId" name="categoryId" required>
+                            <option th:each="c : ${categories}"
+                                    th:value="${c['category_id']}"
+                                    th:selected="${applicant != null and applicant['educational_background_category_id'] == c['category_id']}"
+                                    th:text="${c['category_name']}">
+                                Educational Background
+                            </option>
+                        </select>
                     </div>
                 </div>
             </div>
 
             <!-- ADDRESS -->
             <div class="modal-section">
-                <div class="modal-section-title">ADDRESS</div>
+                <div class="modal-section-title">Address</div>
 
                 <div class="modal-grid">
                     <div class="form-group full-width">
-                        <label>HOUSE NUMBER / STREET</label>
-                        <input type="text" th:field="*{streetAddress}" placeholder="e.g. 123 Rizal St.">
+                        <label for="street">House Number / Street</label>
+                        <input id="street"
+                               name="street"
+                               placeholder="e.g. 123 Rizal St."
+                               th:value="${applicant != null ? applicant['applicant_house_number_street'] : ''}">
                     </div>
 
                     <div class="form-group">
-                        <label>BARANGAY</label>
-                        <input type="text" th:field="*{barangay}">
+                        <label for="barangay">Barangay</label>
+                        <input id="barangay"
+                               name="barangay"
+                               th:value="${applicant != null ? applicant['applicant_barangay'] : ''}">
                     </div>
 
                     <div class="form-group">
-                        <label>CITY / MUNICIPALITY</label>
-                        <input type="text" th:field="*{cityMunicipality}">
+                        <label for="city">City / Municipality</label>
+                        <input id="city"
+                               name="city"
+                               th:value="${applicant != null ? applicant['applicant_city_municipality'] : ''}">
                     </div>
 
                     <div class="form-group">
-                        <label>PROVINCE</label>
-                        <input type="text" th:field="*{province}">
+                        <label for="province">Province</label>
+                        <input id="province"
+                               name="province"
+                               th:value="${applicant != null ? applicant['applicant_province'] : ''}">
                     </div>
 
                     <div class="form-group">
-                        <label>REGION</label>
-                        <select th:field="*{region}">
-                            <option value="">Select Region</option>
-                            <option value="Region I">Region I</option>
-                            <option value="Region II">Region II</option>
-                            <option value="Region III">Region III</option>
-                            <option value="NCR">NCR</option>
+                        <label for="region">Region</label>
+                        <select id="region" name="region" required autocomplete="off">
+                            <option value="" disabled th:selected="${applicant == null or applicant['applicant_region'] == null or applicant['applicant_region'] == ''}">
+                                Select region
+                            </option>
+                            <option value="NCR" th:selected="${applicant != null and applicant['applicant_region'] == 'NCR'}">NCR — National Capital Region</option>
+                            <option value="CAR" th:selected="${applicant != null and applicant['applicant_region'] == 'CAR'}">CAR — Cordillera Administrative Region</option>
+                            <option value="Region I" th:selected="${applicant != null and applicant['applicant_region'] == 'Region I'}">Region I — Ilocos Region</option>
+                            <option value="Region II" th:selected="${applicant != null and applicant['applicant_region'] == 'Region II'}">Region II — Cagayan Valley</option>
+                            <option value="Region III" th:selected="${applicant != null and applicant['applicant_region'] == 'Region III'}">Region III — Central Luzon</option>
+                            <option value="CALABARZON" th:selected="${applicant != null and applicant['applicant_region'] == 'CALABARZON'}">Region IV-A — CALABARZON</option>
+                            <option value="MIMAROPA" th:selected="${applicant != null and applicant['applicant_region'] == 'MIMAROPA'}">MIMAROPA Region — Region IV-B</option>
+                            <option value="Region V" th:selected="${applicant != null and applicant['applicant_region'] == 'Region V'}">Region V — Bicol Region</option>
+                            <option value="Region VI" th:selected="${applicant != null and applicant['applicant_region'] == 'Region VI'}">Region VI — Western Visayas</option>
+                            <option value="NIR" th:selected="${applicant != null and applicant['applicant_region'] == 'NIR'}">NIR — Negros Island Region</option>
+                            <option value="Region VII" th:selected="${applicant != null and applicant['applicant_region'] == 'Region VII'}">Region VII — Central Visayas</option>
+                            <option value="Region VIII" th:selected="${applicant != null and applicant['applicant_region'] == 'Region VIII'}">Region VIII — Eastern Visayas</option>
+                            <option value="Region IX" th:selected="${applicant != null and applicant['applicant_region'] == 'Region IX'}">Region IX — Zamboanga Peninsula</option>
+                            <option value="Region X" th:selected="${applicant != null and applicant['applicant_region'] == 'Region X'}">Region X — Northern Mindanao</option>
+                            <option value="Region XI" th:selected="${applicant != null and applicant['applicant_region'] == 'Region XI'}">Region XI — Davao Region</option>
+                            <option value="Region XII" th:selected="${applicant != null and applicant['applicant_region'] == 'Region XII'}">Region XII — SOCCSKSARGEN</option>
+                            <option value="Region XIII" th:selected="${applicant != null and applicant['applicant_region'] == 'Region XIII'}">Region XIII — Caraga</option>
+                            <option value="BARMM" th:selected="${applicant != null and applicant['applicant_region'] == 'BARMM'}">BARMM — Bangsamoro Autonomous Region in Muslim Mindanao</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>ZIP CODE</label>
-                        <input type="text" th:field="*{zipCode}">
+                        <label for="zipCode">ZIP Code</label>
+                        <input id="zipCode"
+                               name="zipCode"
+                               th:value="${applicant != null ? applicant['applicant_zip_code'] : ''}">
                     </div>
                 </div>
             </div>
 
-            <!-- ACADEMIC INFORMATION -->
-            <div class="modal-section">
-                <div class="modal-section-title">ACADEMIC INFORMATION</div>
+            <!-- APPLICATION INFORMATION -->
+            <div class="modal-section" th:if="${mode != 'edit'}">
+                <div class="modal-section-title">Application Information</div>
 
                 <div class="modal-grid">
                     <div class="form-group">
-                        <label>CURRICULUM / BACKGROUND</label>
-                        <select th:field="*{educationalBackground}">
-                            <option value="Senior High School (SHS)">Senior High School (SHS)</option>
-                            <option value="Alternative Learning System">Alternative Learning System</option>
-                            <option value="College Undergraduate">College Undergraduate</option>
-                            <option value="Old Curriculum">Old Curriculum</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>PROGRAM APPLIED</label>
-                        <select th:field="*{programId}">
-                            <option value="">Select Program</option>
-                            <option th:each="program : ${programs}"
-                                    th:value="${program.programId}"
-                                    th:text="${program.programName}">
+                        <label for="programId">Program</label>
+                        <select id="programId" name="programId" required>
+                            <option th:each="p : ${programs}"
+                                    th:value="${p['program_id']}"
+                                    th:text="${p['program_code'] + ' — ' + p['program_name']}">
+                                Program
                             </option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>CAMPUS</label>
-                        <select th:field="*{campusId}">
-                            <option value="">Select Campus</option>
-                            <option th:each="campus : ${campuses}"
-                                    th:value="${campus.campusId}"
-                                    th:text="${campus.campusName}">
+                        <label for="campusId">Campus</label>
+                        <select id="campusId" name="campusId" required>
+                            <option th:each="c : ${campuses}"
+                                    th:value="${c['campus_id']}"
+                                    th:text="${c['campus_name']}">
+                                Campus
                             </option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>ENROLLMENT STATUS</label>
-                        <select th:field="*{enrollmentStatus}">
-                            <option value="Continuing">Continuing</option>
-                            <option value="Dismissed">Dismissed</option>
-                            <option value="On Leave">On Leave</option>
+                        <label for="applicationStatusId">Application Status</label>
+                        <select id="applicationStatusId" name="applicationStatusId" required>
+                            <option th:each="s : ${applicationStatuses}"
+                                    th:value="${s['application_status_id']}"
+                                    th:text="${s['application_status_name']}">
+                                Status
+                            </option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>LAST SCHOOL ATTENDED</label>
-                        <input type="text" th:field="*{lastSchoolAttended}" placeholder="School name">
+                        <label for="semester">Semester</label>
+                        <input id="semester" name="semester" value="First Semester" required>
                     </div>
 
                     <div class="form-group">
-                        <label>YEAR GRADUATED / COMPLETED</label>
-                        <input type="text" th:field="*{yearGraduated}" placeholder="e.g. 2024">
-                    </div>
-
-                    <div class="form-group">
-                        <label>SHS TRACK</label>
-                        <select th:field="*{shsTrack}">
-                            <option value="">Select Track</option>
-                            <option value="STEM">STEM</option>
-                            <option value="ABM">ABM</option>
-                            <option value="HUMSS">HUMSS</option>
-                            <option value="GAS">GAS</option>
-                            <option value="TVL">TVL</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>SHS STRAND</label>
-                        <input type="text" th:field="*{shsStrand}">
+                        <label for="academicYear">Academic Year</label>
+                        <input id="academicYear"
+                               name="academicYear"
+                               th:value="${defaultAcademicYear}"
+                               required>
                     </div>
                 </div>
             </div>
 
             <div class="modal-form-actions">
-                <a th:href="@{/applicants}" class="btn-outline">Cancel</a>
-                <button type="submit" class="btn-primary">Save Applicant</button>
+                <a th:href="@{/applicants}" href="/applicants" class="modal-btn-outline">Cancel</a>
+                <button class="modal-btn-primary" type="submit">Save Applicant</button>
             </div>
+
         </form>
     </div>
 </div>
