@@ -535,6 +535,7 @@
                         <option value="">All Status</option>
                         <option th:each="s : ${statuses}"
                                 th:value="${s['requirement_status_name']}"
+                                th:selected="${statusId != null and statusId == s['status_id']}"
                                 th:text="${s['requirement_status_name']}">
                             Status
                         </option>
