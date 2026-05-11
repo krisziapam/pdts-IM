@@ -10,8 +10,227 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
+
+    <style>
+        /* Page-specific Email Notification modal style */
+        .email-page .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .email-page .email-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .email-page .send-notification-btn {
+            min-width: 210px;
+            height: 60px;
+            border-radius: 18px;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .email-page .email-log-table th {
+            padding: 12px 14px;
+        }
+
+        .email-page .email-log-table td {
+            padding: 13px 14px;
+            vertical-align: middle;
+        }
+
+        .email-page .reminder-card {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .email-page .deadline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 16px 18px;
+            border-radius: 12px;
+        }
+
+        .email-page .deadline strong {
+            color: #8B0000;
+            font-size: 14px;
+        }
+
+        .email-page .deadline.danger {
+            background: #fde2e2;
+        }
+
+        .email-page .deadline.warn {
+            background: #fff3c4;
+        }
+
+        .email-page .deadline.ok {
+            background: #e8f9ef;
+        }
+
+        /* Floating modal */
+        .email-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(35, 20, 20, 0.58);
+        }
+
+        .email-modal-overlay.open {
+            display: flex;
+        }
+
+        .email-modal {
+            width: 100%;
+            max-width: 690px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 26px 28px;
+            box-shadow: 0 24px 70px rgba(26, 10, 10, 0.28);
+        }
+
+        .email-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+        }
+
+        .email-modal-header h2 {
+            margin: 0;
+            color: #8B0000;
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .email-modal-close {
+            border: none;
+            background: transparent;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: 700;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .email-modal-close:hover {
+            color: #8B0000;
+        }
+
+        .email-modal-form {
+            display: grid;
+            gap: 16px;
+        }
+
+        .email-modal-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .email-modal-form label {
+            color: #8B0000;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
+        }
+
+        .email-modal-form input,
+        .email-modal-form select,
+        .email-modal-form textarea {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid #ddd6cf;
+            border-radius: 9px;
+            padding: 10px 14px;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 14px;
+            background: #ffffff;
+            color: #1a0a0a;
+            outline: none;
+        }
+
+        .email-modal-form textarea {
+            min-height: 160px;
+            resize: vertical;
+            line-height: 1.65;
+        }
+
+        .email-modal-form input:focus,
+        .email-modal-form select:focus,
+        .email-modal-form textarea:focus {
+            border-color: #8B0000;
+            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.1);
+        }
+
+        .email-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .email-modal-actions .btn {
+            min-height: 42px;
+            border-radius: 10px;
+            padding: 8px 18px;
+            font-weight: 700;
+        }
+
+        .email-preview-note {
+            display: none;
+            background: #e8f9ef;
+            color: #065f46;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .email-preview-note.show {
+            display: block;
+        }
+
+        @media (max-width: 1000px) {
+            .email-page .email-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .email-modal {
+                padding: 22px 18px;
+            }
+
+            .email-modal-actions {
+                flex-direction: column;
+            }
+
+            .email-modal-actions .btn {
+                width: 100%;
+            }
+
+            .email-page .send-notification-btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
-<body>
+
+<body class="email-page">
 <div id="app">
     <aside id="sidebar">
         <div class="sb-logo">
@@ -27,21 +246,21 @@
 
         <nav class="sb-section" aria-label="Main navigation">
             <div class="sb-section-label">Main</div>
-            <a class="sb-nav-item " th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
-            <a class="sb-nav-item " th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Students / Applicants</a>
-            <a class="sb-nav-item " th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Document Submissions</a>
+            <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
+            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Students / Applicants</a>
+            <a class="sb-nav-item" th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Document Submissions</a>
         </nav>
 
         <nav class="sb-section" aria-label="Management navigation">
             <div class="sb-section-label">Management</div>
             <a class="sb-nav-item active" th:href="@{/email-notifications}" href="/email-notifications"><span class="icon">✉</span>Email Notifications</a>
-            <a class="sb-nav-item " th:href="@{/tracking-lookup}" href="/tracking-lookup"><span class="icon">⌕</span>Tracking Lookup</a>
-            <a class="sb-nav-item " th:href="@{/reports}" href="/reports"><span class="icon">▤</span>Reports &amp; Filters</a>
+            <a class="sb-nav-item" th:href="@{/tracking-lookup}" href="/tracking-lookup"><span class="icon">⌕</span>Tracking Lookup</a>
+            <a class="sb-nav-item" th:href="@{/reports}" href="/reports"><span class="icon">▤</span>Reports &amp; Filters</a>
         </nav>
 
         <nav class="sb-section" aria-label="System navigation">
             <div class="sb-section-label">System</div>
-            <a class="sb-nav-item " th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Audit Logs</a>
+            <a class="sb-nav-item" th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Audit Logs</a>
             <a class="sb-nav-item" th:href="@{/users/new}" href="/users/new"><span class="icon">＋</span>Create Account</a>
             <a class="sb-nav-item" th:href="@{/users}" href="/users"><span class="icon">⚙</span>Settings</a>
         </nav>
@@ -71,38 +290,245 @@
         </header>
 
         <section id="content">
-            <div class="two-col">
+            <div class="email-layout">
                 <section class="card">
                     <div class="card-header">
                         <h2 class="card-title">Email Log</h2>
-                        <button class="btn btn-primary" type="button">+ Send Notification</button>
+                        <button class="btn btn-primary send-notification-btn" type="button" data-open-email-modal>
+                            + Send Notification
+                        </button>
                     </div>
+
                     <div class="table-wrap">
-                        <table>
+                        <table class="email-log-table">
                             <thead>
-                            <tr><th>Subject</th><th>Tracking</th><th>Status</th></tr>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Tracking</th>
+                                <th>Status</th>
+                            </tr>
                             </thead>
                             <tbody>
-                            <tr><td><div class="td-name">Acknowledgment: PSA Birth Certificate Received</div><div class="td-muted">To: student@example.com · system generated</div></td><td><span class="tracking-badge">📄 DOC-2026-0001</span></td><td><span class="badge badge-received">Sent</span></td></tr>
-                            <tr><td><div class="td-name">Document Rejection Notice</div><div class="td-muted">Reason and resubmission instructions</div></td><td><span class="tracking-badge">📄 DOC-2026-0002</span></td><td><span class="badge badge-received">Sent</span></td></tr>
-                            <tr><td><div class="td-name">Reminder: Pending Graduation Requirements</div><div class="td-muted">Weekly pending reminder</div></td><td><span class="td-muted">Batch notice</span></td><td><span class="badge badge-pending">Queued</span></td></tr>
+                            <tr>
+                                <td>
+                                    <div class="td-name">Acknowledgment: PSA Birth Certificate Received</div>
+                                    <div class="td-muted">To: student@example.com · system generated</div>
+                                </td>
+                                <td><span class="tracking-badge">📄 DOC-2026-0001</span></td>
+                                <td><span class="badge badge-received">Sent</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="td-name">Document Rejection Notice</div>
+                                    <div class="td-muted">Reason and resubmission instructions</div>
+                                </td>
+                                <td><span class="tracking-badge">📄 DOC-2026-0002</span></td>
+                                <td><span class="badge badge-received">Sent</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="td-name">Reminder: Pending Graduation Requirements</div>
+                                    <div class="td-muted">Weekly pending reminder</div>
+                                </td>
+                                <td><span class="td-muted">Batch notice</span></td>
+                                <td><span class="badge badge-pending">Queued</span></td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
                 </section>
 
                 <section class="card">
-                    <div class="card-header"><h2 class="card-title">Automated Reminders</h2></div>
-                    <div class="deadline-list">
-                        <div class="deadline danger"><div><strong>Weekly Pending Reminder</strong><br><span class="td-muted">Every Monday, 8:00 AM</span></div><span class="badge badge-active">Active</span></div>
-                        <div class="deadline warn"><div><strong>Deadline Alert</strong><br><span class="td-muted">7 days before document deadline</span></div><span class="badge badge-pending">Active</span></div>
-                        <div class="deadline ok"><div><strong>Acknowledgment Receipt</strong><br><span class="td-muted">Sent when a document is logged as received</span></div><span class="badge badge-active">Active</span></div>
+                    <div class="card-header">
+                        <h2 class="card-title">Automated Reminders</h2>
+                    </div>
+
+                    <div class="reminder-card">
+                        <div class="deadline danger">
+                            <div>
+                                <strong>Weekly Pending Reminder</strong><br>
+                                <span class="td-muted">Every Monday, 8:00 AM</span>
+                            </div>
+                            <span class="badge badge-active">Active</span>
+                        </div>
+
+                        <div class="deadline warn">
+                            <div>
+                                <strong>Deadline Alert</strong><br>
+                                <span class="td-muted">7 days before document deadline</span>
+                            </div>
+                            <span class="badge badge-pending">Active</span>
+                        </div>
+
+                        <div class="deadline ok">
+                            <div>
+                                <strong>Acknowledgment Receipt</strong><br>
+                                <span class="td-muted">Sent when a document is logged as received</span>
+                            </div>
+                            <span class="badge badge-active">Active</span>
+                        </div>
                     </div>
                 </section>
             </div>
         </section>
     </main>
 </div>
+
+<!-- SEND EMAIL NOTIFICATION MODAL -->
+<div class="email-modal-overlay" id="sendEmailModal" aria-hidden="true">
+    <div class="email-modal" role="dialog" aria-modal="true" aria-labelledby="sendEmailTitle">
+        <div class="email-modal-header">
+            <h2 id="sendEmailTitle">Send Email Notification</h2>
+            <button type="button" class="email-modal-close" data-close-email-modal aria-label="Close">&times;</button>
+        </div>
+
+        <form class="email-modal-form" id="emailNotificationForm">
+            <div class="form-group">
+                <label for="emailRecipient">Recipient</label>
+                <select id="emailRecipient" name="recipient">
+                    <option value="juan.delacruz@email.com">Dela Cruz, Juan S. (juan.delacruz@email.com)</option>
+                    <option value="maria.santos@email.com">Santos, Maria L. (maria.santos@email.com)</option>
+                    <option value="pedro.reyes@email.com">Reyes, Pedro (pedro.reyes@email.com)</option>
+                    <option value="ana.villanueva@email.com">Villanueva, Ana C. (ana.villanueva@email.com)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="emailType">Email Type</label>
+                <select id="emailType" name="emailType">
+                    <option value="pending">Pending Requirements Reminder</option>
+                    <option value="received">Acknowledgment Receipt</option>
+                    <option value="rejected">Document Rejection Notice</option>
+                    <option value="deadline">Deadline Alert</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="emailSubject">Subject</label>
+                <input id="emailSubject"
+                       name="subject"
+                       value="Reminder: Pending Requirements – Please Submit Required Documents">
+            </div>
+
+            <div class="form-group">
+                <label for="emailBody">Message Body</label>
+                <textarea id="emailBody" name="body">Dear Student,
+
+This is a reminder that you have pending graduation requirements.
+
+Please submit the required documents at your earliest convenience.
+
+Thank you.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="emailRemarks">Editable Remarks</label>
+                <input id="emailRemarks" name="remarks" placeholder="Optional note...">
+            </div>
+
+            <div class="email-preview-note" data-email-preview-note>
+                Email preview generated. Backend email sending can be connected later.
+            </div>
+
+            <div class="email-modal-actions">
+                <button type="button" class="btn btn-outline" data-close-email-modal>Cancel</button>
+                <button type="button" class="btn btn-primary" data-send-email-preview>Send Email</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("sendEmailModal");
+        const openButton = document.querySelector("[data-open-email-modal]");
+        const closeButtons = document.querySelectorAll("[data-close-email-modal]");
+        const sendButton = document.querySelector("[data-send-email-preview]");
+        const notice = document.querySelector("[data-email-preview-note]");
+        const emailType = document.getElementById("emailType");
+        const subject = document.getElementById("emailSubject");
+        const body = document.getElementById("emailBody");
+
+        const templates = {
+            pending: {
+                subject: "Reminder: Pending Requirements – Please Submit Required Documents",
+                body: "Dear Student,\\n\\nThis is a reminder that you have pending graduation requirements.\\n\\nPlease submit the required documents at your earliest convenience.\\n\\nThank you."
+            },
+            received: {
+                subject: "Acknowledgment: Document Received",
+                body: "Dear Student,\\n\\nThis is to confirm that your submitted document has been received by the Registrar's Office.\\n\\nYou will be notified once processing is complete.\\n\\nThank you."
+            },
+            rejected: {
+                subject: "Document Rejection Notice – Action Required",
+                body: "Dear Student,\\n\\nYour submitted document requires correction or resubmission.\\n\\nPlease review the remarks and submit the corrected document as soon as possible.\\n\\nThank you."
+            },
+            deadline: {
+                subject: "Deadline Alert – Required Documents Due Soon",
+                body: "Dear Student,\\n\\nThis is a reminder that the deadline for submitting your required document is approaching.\\n\\nPlease complete your submission before the due date.\\n\\nThank you."
+            }
+        };
+
+        function openModal() {
+            if (!modal) return;
+            modal.classList.add("open");
+            modal.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+            if (!modal) return;
+            modal.classList.remove("open");
+            modal.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+            if (notice) {
+                notice.classList.remove("show");
+            }
+        }
+
+        if (openButton) {
+            openButton.addEventListener("click", function (event) {
+                event.preventDefault();
+                openModal();
+            });
+        }
+
+        closeButtons.forEach(function (button) {
+            button.addEventListener("click", closeModal);
+        });
+
+        if (modal) {
+            modal.addEventListener("click", function (event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+        }
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeModal();
+            }
+        });
+
+        if (emailType) {
+            emailType.addEventListener("change", function () {
+                const selected = templates[emailType.value];
+                if (!selected) return;
+                subject.value = selected.subject;
+                body.value = selected.body;
+            });
+        }
+
+        if (sendButton) {
+            sendButton.addEventListener("click", function () {
+                if (notice) {
+                    notice.classList.add("show");
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>
