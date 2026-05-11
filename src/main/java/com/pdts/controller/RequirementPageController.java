@@ -141,13 +141,14 @@ public class RequirementPageController {
         model.addAttribute("statuses", jdbc.queryForList("SELECT status_id, requirement_status_name FROM requirement_status ORDER BY status_id"));
         model.addAttribute("types", jdbc.queryForList("SELECT type_id, requirement_type_name FROM requirement_type WHERE type_is_active = 1 ORDER BY requirement_type_name"));
         model.addAttribute("rejectionReasons", jdbc.queryForList("SELECT rejection_reason_id, rejection_reason_name FROM rejection_reason WHERE rejection_reason_is_active = 1 ORDER BY rejection_reason_name"));
-        model.addAttribute("applications", jdbc.queryForList("""
-                SELECT a.application_id, a.application_reference_number,
-                       ap.applicant_first_name, ap.applicant_last_name
-                FROM application a
-                JOIN applicant ap ON ap.applicant_id = a.applicant_id
-                ORDER BY a.application_id DESC
-                """));
+       model.addAttribute("applications", jdbc.queryForList("""
+        SELECT a.application_id, a.application_reference_number,
+               ap.applicant_first_name, ap.applicant_last_name
+        FROM application a
+        JOIN applicant ap ON ap.applicant_id = a.applicant_id
+        WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
+        ORDER BY a.application_id DESC
+        """));
     }
 
     private String nextTrackingNo() {
