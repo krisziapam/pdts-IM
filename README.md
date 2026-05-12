@@ -1,256 +1,418 @@
+[README_PDTS_merged.md](https://github.com/user-attachments/files/27648677/README_PDTS_merged.md)
 # PDTS — PUPOUS Document Tracking System
 
-**Polytechnic University of the Philippines — Open University System**
+**Polytechnic University of the Philippines — Open University System**  
 Office of the University Registrar | AY 2025–2026 | BSITOUMN 2-3
 
-Online Website link: https://pdts-im.onrender.com/login
+**Live site:** <https://pdts-im.onrender.com/login>
+
+---
+
+## Overview
+
+PDTS, or the **PUPOUS Document Tracking System**, is a Spring Boot web application for managing applicant records, admission documents, document status updates, applicant tracking tokens, staff users, audit logs, and student-facing status lookup.
+
+This README consolidates the previous project notes from:
+
+- `README.md`
+- `README_COMPLETE_SYSTEM.md`
+- `README_POSTGRESQL.md`
+
+The current project version is configured primarily for **PostgreSQL**, with legacy MySQL files preserved for reference.
+
+---
+
+## Main Features
+
+- **Staff login and role-based access** using Spring Security.
+- **Dashboard summaries** for applicants, applications, documents, and recent activity.
+- **Applicant management** for creating, viewing, editing, and searching applicant records.
+- **Application record creation** during applicant registration.
+- **Document/requirement tracking** with upload, review, receive, reject, and resubmission workflows.
+- **Tracking number generation** for student and document records.
+- **Public status portal** where applicants can check their document status using a reference number and token.
+- **Email notifications** for document status updates, applicant tokens, and manual email notices.
+- **Staff user management** with activate/deactivate controls.
+- **Rejection reason management** for standardizing document review feedback.
+- **Activity log viewer** for audit trail monitoring.
+- **Reports and tracking lookup pages** for administrative use.
+- **Render-ready deployment** through the included `Dockerfile`.
+- **Scheduled Render ping workflow** through `.github/workflows/daily-ping.yml`.
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                          |
-|------------|-------------------------------------|
-| Frontend   | HTML5 · CSS3 · Vanilla JavaScript   |
-| Backend    | Java 17 · Spring Boot 3.x           |
-| Database   | MySQL 8.0 · MySQL Workbench         |
-| Email      | JavaMail API / SMTP                 |
-| Security   | Spring Security · BCrypt            |
-| Templates  | Thymeleaf                           |
-
----
-
-## Prerequisites
-
-Before running PDTS, install the following:
-
-- **Java JDK 17** (LTS) — [https://adoptium.net](https://adoptium.net)
-- **Maven 3.8+** — [https://maven.apache.org/download.cgi](https://maven.apache.org/download.cgi)
-- **MySQL 8.0+** — [https://dev.mysql.com/downloads/mysql](https://dev.mysql.com/downloads/mysql)
-- **MySQL Workbench** — [https://dev.mysql.com/downloads/workbench](https://dev.mysql.com/downloads/workbench)
-- **VS Code** — with the extension pack listed in `.vscode/extensions.json`
-
----
-
-## Step 1 — Clone / Open in VS Code
-
-```bash
-# If cloning from a repo
-git clone <your-repo-url>
-cd pdts-project
-
-# Or open the folder directly in VS Code
-code .
-```
-
-VS Code will detect the Maven project and prompt you to install recommended extensions.
-Accept all recommended extensions from `.vscode/extensions.json`.
-
----
-
-## Step 2 — Set Up the Database
-
-1. Open **MySQL Workbench** and connect to your local MySQL server.
-
-2. Run the schema script:
-   ```
-   File → Open SQL Script → database/01_schema.sql → Execute (⚡)
-   ```
-
-3. Run the seed data script:
-   ```
-   File → Open SQL Script → database/02_seed.sql → Execute (⚡)
-   ```
-
-4. Verify the `pdts_db` database has been created with all tables.
-
----
-
-## Step 3 — Configure the Application
-
-Open `src/main/resources/application.properties` and update:
-
-```properties
-# Your MySQL credentials
-spring.datasource.username=root
-spring.datasource.password=YOUR_MYSQL_PASSWORD
-
-# Your SMTP email (for automated notifications)
-spring.mail.username=your_email@gmail.com
-spring.mail.password=your_app_password
-```
-
-> **Gmail users:** Generate an App Password at
-> [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-> (requires 2FA enabled). Use the generated 16-character password, not your Gmail password.
-
----
-
-## Step 4 — Create the Default Admin Account
-
-After running the seed scripts, the admin record has a placeholder password hash.
-To set a real bcrypt-hashed password, run this Java snippet once or use the
-Spring Boot Devtools console:
-
-```java
-// Temporary: generate a bcrypt hash
-String hash = new BCryptPasswordEncoder(12).encode("Admin@2025");
-System.out.println(hash);
-// Copy the output into MySQL Workbench:
-// UPDATE pdts_db.user SET user_password_hash = '<paste_hash>' WHERE user_username = 'admin001';
-```
-
----
-
-## Step 5 — Run the Application
-
-### Option A — VS Code Spring Boot Dashboard (Recommended)
-
-1. Click the **Spring Boot Dashboard** icon in the Activity Bar (left sidebar).
-2. Click the ▶ play button next to `pdts`.
-3. The app will start on `http://localhost:8080`.
-
-### Option B — Maven Terminal
-
-```bash
-./mvnw spring-boot:run
-# Windows:
-mvnw.cmd spring-boot:run
-```
-
-### Option C — Build & Run JAR
-
-```bash
-./mvnw clean package -DskipTests
-java -jar target/pdts-1.0.0.jar
-```
-
----
-
-## Step 6 — Access the System
-
-| URL                              | Description                               |
-|----------------------------------|-------------------------------------------|
-| `http://localhost:8080/login`    | Staff login (Employee ID + Password)      |
-| `http://localhost:8080/dashboard`| Main dashboard (requires login)           |
-| `http://localhost:8080/`         | Landing page with token search            |
-
-**Default login credentials:**
-- Username: `admin001`
-- Password: `Admin@2025` *(after updating the hash in Step 4)*
+| Layer | Technology |
+|---|---|
+| Backend | Java 21, Spring Boot 3.5.14 |
+| Web/UI | Thymeleaf, HTML5, CSS3, Vanilla JavaScript |
+| Security | Spring Security, BCrypt, form login |
+| Database | PostgreSQL 13+ |
+| Persistence | Spring Data JPA, Hibernate, JdbcTemplate |
+| Email | Resend HTTP API for the main PostgreSQL/Render setup |
+| Build Tool | Maven |
+| Deployment | Docker, Render |
 
 ---
 
 ## Project Structure
 
-```
-pdts-project/
-├── .vscode/
-│   ├── settings.json          VS Code Java/Spring settings
-│   └── extensions.json        Recommended extensions
+```text
+pdts-IM-main/
+├── .github/
+│   └── workflows/
+│       └── daily-ping.yml              # Scheduled ping for Render deployment
+├── Dockerfile                          # Docker build for Render/container deployment
+├── README.md                           # Main project documentation
 ├── database/
-│   ├── 01_schema.sql          Full MySQL schema (all tables, triggers, view)
-│   └── 02_seed.sql            Seed data (curriculum types, statuses, admin)
-├── src/main/java/com/pdts/
-│   ├── PdtsApplication.java   Spring Boot entry point
-│   ├── config/
-│   │   └── SecurityConfig.java    Spring Security + BCrypt
-│   ├── controller/
-│   │   ├── AuthController.java
-│   │   ├── DashboardController.java
-│   │   ├── ApplicantController.java
-│   │   ├── RequirementController.java
-│   │   ├── RejectionReasonController.java
-│   │   ├── PublicPortalController.java
-│   │   └── PortalStatusController.java
-│   ├── model/
-│   │   ├── Applicant.java
-│   │   ├── Application.java
-│   │   ├── ApplicantAccessToken.java
-│   │   ├── Requirement.java
-│   │   ├── RequirementStatus.java
-│   │   ├── RequirementType.java
-│   │   ├── RejectionReason.java
-│   │   ├── Role.java
-│   │   └── User.java
-│   ├── repository/
-│   │   ├── ApplicantRepository.java
-│   │   ├── ApplicationRepository.java
-│   │   ├── ApplicantAccessTokenRepository.java
-│   │   ├── RequirementRepository.java
-│   │   ├── RejectionReasonRepository.java
-│   │   └── UserRepository.java
-│   └── service/
-│       ├── ApplicantService.java
-│       ├── EmailService.java
-│       ├── RequirementService.java
-│       ├── TokenService.java
-│       └── TrackingNumberService.java
-├── src/main/resources/
-│   ├── static/
-│   │   ├── assets/logo.png    PUP seal (add manually)
-│   │   ├── css/
-│   │   │   ├── login.css
-│   │   │   ├── dashboard.css
-│   │   │   ├── applicant.css
-│   │   │   └── portal.css
-│   │   └── js/
-│   │       ├── login.js
-│   │       ├── dashboard.js
-│   │       └── portal.js
-│   ├── templates/
-│   │   ├── login.html
-│   │   ├── dashboard.html
-│   │   ├── applicant-detail.html
-│   │   └── portal-status.html
-│   └── application.properties
-└── pom.xml
+│   ├── 01_schema.sql                   # PostgreSQL schema
+│   ├── 02_seed.sql                     # PostgreSQL seed data
+│   ├── 03_sample_data.sql              # Optional test/sample records
+│   └── mysql_original/                 # Original MySQL scripts kept for reference
+├── pdts_db/
+│   └── pdts_db.sqlproj                 # Database project file
+├── pom.xml                             # Maven project configuration
+└── src/
+    └── main/
+        ├── java/com/pdts/
+        │   ├── PdtsApplication.java    # Spring Boot entry point
+        │   ├── config/                 # Security and application properties classes
+        │   ├── controller/             # MVC and REST controllers
+        │   ├── model/                  # JPA entity models
+        │   ├── repository/             # Spring Data repositories
+        │   └── service/                # Business logic services
+        └── resources/
+            ├── application.properties  # Main PostgreSQL/Render configuration
+            ├── application-mysql.properties
+            ├── static/                 # CSS, JavaScript, images, icons
+            └── templates/              # Thymeleaf pages
 ```
 
 ---
 
-## Adding the PUP Logo
+## Prerequisites
 
-Place the PUP seal image at:
+Install these before running the project locally:
+
+- **Java JDK 21**
+- **Maven 3.9+**
+- **PostgreSQL 13+**
+- **pgAdmin** or **psql** for running SQL scripts
+- **VS Code**, IntelliJ IDEA, NetBeans, or another Java IDE
+- **Git** for cloning and version control
+
+> Note: This repository does not currently include Maven wrapper files such as `mvnw` or `mvnw.cmd`, so Maven must be installed on your computer before using `mvn` commands.
+
+---
+
+## Local Setup
+
+### 1. Clone the repository
+
+```bash
+git clone <your-repository-url>
+cd pdts-IM-main
 ```
-src/main/resources/static/assets/logo.png
+
+If you downloaded the ZIP from GitHub, extract it and open the extracted folder in your IDE.
+
+---
+
+### 2. Create the PostgreSQL database
+
+Open **pgAdmin** or **psql**, then create the database:
+
+```sql
+CREATE DATABASE pdts_db;
 ```
-The provided images (`9573.png` / `9576.jpg`) can be renamed and placed there.
-Recommended: use the transparent seal PNG, resized to 200×200px.
+
+Connect to the new `pdts_db` database before running the project scripts.
 
 ---
 
-## Common Issues
+### 3. Run the database scripts
 
-| Problem                          | Fix                                                            |
-|----------------------------------|----------------------------------------------------------------|
-| `Access denied for user 'root'`  | Update `spring.datasource.password` in `application.properties`|
-| Port 8080 already in use         | Change `server.port=8081` in `application.properties`         |
-| Email not sending                | Verify Gmail App Password; check SMTP settings                 |
-| `Table 'pdts_db.xxx' doesn't exist` | Re-run `01_schema.sql` in MySQL Workbench                  |
-| Java version error               | Run `java -version`; must be 17+                              |
-| Maven not found                  | Use `./mvnw` (included wrapper) instead of `mvn`              |
+Run the SQL files in this order:
 
----
+```text
+database/01_schema.sql
+database/02_seed.sql
+database/03_sample_data.sql   optional, for testing dashboard data
+```
 
-## SQL Query Reference
-
-Ten demonstration queries are embedded in `PDTS_Merged_Final.docx` Section 11.
-They are also ready to run directly in MySQL Workbench against `pdts_db`.
-
-| # | Title                                 | Difficulty |
-|---|---------------------------------------|------------|
-| 1 | List All Applicants with Curriculum   | Simple     |
-| 2 | Count Documents Per Status            | Simple     |
-| 3 | Active Rejection Reasons              | Simple     |
-| 4 | Full Document Status Report           | Moderate   |
-| 5 | System Activity Audit Log (30 days)   | Moderate   |
-| 6 | Applicants with Incomplete Submissions| Moderate   |
-| 7 | Document Timeline by Campus/Semester  | Moderate   |
-| 8 | Staff Processing Efficiency Ranking   | Difficult  |
-| 9 | Brute-Force Detection via Token Log   | Difficult  |
-|10 | Applicant Document Completion Report  | Difficult  |
+The first two scripts are required. The third script is optional and only adds sample applicant/application/document records for local testing.
 
 ---
 
-*PDTS — BSITOUMN 2-3 | Polytechnic University of the Philippines — Open University System*
+### 4. Configure environment variables
+
+The main configuration file is:
+
+```text
+src/main/resources/application.properties
+```
+
+It expects the following environment variables:
+
+| Variable | Required | Example |
+|---|---:|---|
+| `DATABASE_URL` | Yes | `jdbc:postgresql://localhost:5432/pdts_db` |
+| `DATABASE_USERNAME` | Yes | `postgres` |
+| `DATABASE_PASSWORD` | Yes | `your_postgres_password` |
+| `RESEND_API_KEY` | Required for email | `re_xxxxxxxxxxxxx` |
+| `RESEND_FROM_EMAIL` | Optional | `PDTS Registrar <onboarding@resend.dev>` |
+| `PORT` | Optional | `8080` locally or `10000` on Render |
+
+For local development, you may set the variables through your terminal.
+
+**Windows PowerShell:**
+
+```powershell
+$env:DATABASE_URL="jdbc:postgresql://localhost:5432/pdts_db"
+$env:DATABASE_USERNAME="postgres"
+$env:DATABASE_PASSWORD="your_postgres_password"
+$env:RESEND_API_KEY="your_resend_api_key"
+$env:PORT="8080"
+```
+
+**macOS/Linux:**
+
+```bash
+export DATABASE_URL="jdbc:postgresql://localhost:5432/pdts_db"
+export DATABASE_USERNAME="postgres"
+export DATABASE_PASSWORD="your_postgres_password"
+export RESEND_API_KEY="your_resend_api_key"
+export PORT="8080"
+```
+
+For a quick local test without email, you can still run the app without a valid Resend key, but email-sending features will fail until `RESEND_API_KEY` is configured.
+
+---
+
+### 5. Run the application
+
+From the project root folder, run:
+
+```bash
+mvn spring-boot:run
+```
+
+Then open:
+
+```text
+http://localhost:8080/login
+```
+
+If you set a different `PORT`, use that port instead.
+
+---
+
+## Default Login
+
+After running `database/02_seed.sql`, use the seeded staff account:
+
+```text
+Username: admin001
+Password: Admin@2025
+```
+
+The seeded account is assigned to the **Head Admission** role.
+
+---
+
+## Important URLs
+
+| URL | Purpose | Access |
+|---|---|---|
+| `/login` | Staff login page | Public |
+| `/dashboard` | Main staff dashboard | Staff only |
+| `/applicants` | Applicant list and management | Staff only |
+| `/requirements` | Document/requirement tracking | Staff only |
+| `/users` | Staff user management | Staff only |
+| `/logs` | Activity log viewer | Staff only |
+| `/email-notifications` | Manual email notification page | Staff only |
+| `/tracking-lookup` | Tracking lookup utility | Staff only |
+| `/reports` | Reports page | Staff only |
+| `/` | Public applicant tracking/status lookup landing page | Public |
+| `/api/portal/verify` | Public token/reference verification endpoint | Public |
+| `/api/portal/status` | Public document status endpoint | Public |
+
+---
+
+## User Roles Seeded by the Database
+
+The seed script creates these roles:
+
+| Role | General Purpose |
+|---|---|
+| Admission Personnel | Can create/update applicant records and upload documents. |
+| Admin | Can manage document review actions, users, rejection reasons, and applicant tokens. |
+| Head Admission | Full system access, including user management and activity logs. |
+
+---
+
+## Database Notes
+
+The PostgreSQL schema uses `app_user` instead of `user` because `user` can conflict with PostgreSQL reserved/special keywords.
+
+Main database files:
+
+```text
+database/01_schema.sql        PostgreSQL schema
+database/02_seed.sql          Required lookup data and default admin account
+database/03_sample_data.sql   Optional sample applicant/application/document data
+database/mysql_original/      Original MySQL files kept for reference
+```
+
+The schema includes:
+
+- Applicant records
+- Previous education records
+- Emergency contacts
+- Applications
+- Requirement/document records
+- Requirement statuses and types
+- Rejection reasons
+- Staff users, roles, and permissions
+- Tracking sequences
+- Applicant access tokens
+- Token access logs
+- User activity logs
+- Public portal status view
+
+---
+
+## Email Configuration
+
+The main PostgreSQL/Render version uses **Resend** through these properties:
+
+```properties
+resend.api-key=${RESEND_API_KEY}
+resend.from-email=${RESEND_FROM_EMAIL:PDTS Registrar <onboarding@resend.dev>}
+```
+
+Email is used for:
+
+- Sending applicant access tokens
+- Sending document status updates
+- Sending rejection/resubmission notices
+- Sending manual staff-triggered notifications
+
+Do not commit real API keys, email passwords, database URLs, or database passwords to GitHub. Use environment variables, Render environment settings, or GitHub Secrets.
+
+---
+
+## Running with Docker
+
+The included `Dockerfile` builds the Spring Boot app using Maven and runs it with Java 21.
+
+Build the image:
+
+```bash
+docker build -t pdts .
+```
+
+Run the container:
+
+```bash
+docker run --rm -p 10000:10000 \
+  -e PORT=10000 \
+  -e DATABASE_URL="jdbc:postgresql://host.docker.internal:5432/pdts_db" \
+  -e DATABASE_USERNAME="postgres" \
+  -e DATABASE_PASSWORD="your_postgres_password" \
+  -e RESEND_API_KEY="your_resend_api_key" \
+  pdts
+```
+
+Then open:
+
+```text
+http://localhost:10000/login
+```
+
+---
+
+## Render Deployment Notes
+
+This project is ready for Render/container deployment through the included `Dockerfile`.
+
+Required Render environment variables:
+
+```text
+DATABASE_URL=jdbc:postgresql://<host>:<port>/<database>
+DATABASE_USERNAME=<database_username>
+DATABASE_PASSWORD=<database_password>
+RESEND_API_KEY=<resend_api_key>
+RESEND_FROM_EMAIL=PDTS Registrar <your_verified_sender>
+PORT=10000
+```
+
+The app is configured to listen on:
+
+```properties
+server.port=${PORT:10000}
+server.address=0.0.0.0
+```
+
+The GitHub Actions workflow in `.github/workflows/daily-ping.yml` currently pings:
+
+```text
+https://pdts-im.onrender.com/login
+```
+
+If your Render URL changes, update that workflow file before pushing to GitHub.
+
+---
+
+## MySQL / XAMPP Notes
+
+The current main application setup is PostgreSQL.
+
+Original MySQL scripts are still available in:
+
+```text
+database/mysql_original/
+```
+
+A legacy MySQL configuration file is also available:
+
+```text
+src/main/resources/application-mysql.properties
+```
+
+If you want to switch back to MySQL or XAMPP/MariaDB, you must also restore/add the MySQL JDBC dependency in `pom.xml`, because the current Maven configuration uses the PostgreSQL driver.
+
+---
+
+## Common Issues and Fixes
+
+| Problem | Likely Cause | Fix |
+|---|---|---|
+| `mvn` is not recognized | Maven is not installed or not in PATH | Install Maven 3.9+ and restart the terminal. |
+| `DATABASE_URL` error | Environment variable is missing | Set `DATABASE_URL=jdbc:postgresql://localhost:5432/pdts_db`. |
+| `password authentication failed` | Wrong PostgreSQL password | Check `DATABASE_USERNAME` and `DATABASE_PASSWORD`. |
+| `relation does not exist` | SQL scripts were not run | Run `01_schema.sql`, then `02_seed.sql`. |
+| Login fails for `admin001` | Seed data not loaded or account inactive | Re-run/check `02_seed.sql` and confirm the `app_user` row exists. |
+| Port already in use | Another app is using the same port | Set `PORT=8081` or stop the other process. |
+| Email does not send | Missing Resend configuration | Set `RESEND_API_KEY` and a valid `RESEND_FROM_EMAIL`. |
+| Uploaded files are missing after redeploy | Render free/container disk is ephemeral | Use persistent storage or external object storage for production uploads. |
+
+---
+
+## Before Pushing to GitHub
+
+Recommended checklist:
+
+- Keep only one main README: `README.md`.
+- Do not commit API keys, passwords, `.env` files, or private database credentials.
+- Confirm the live Render URL is correct.
+- Confirm `database/01_schema.sql` and `database/02_seed.sql` are the current PostgreSQL scripts.
+- Update the screenshots section if you add screenshots later.
+- Add a license file if the project needs one.
+
+---
+
+## Academic Use Notice
+
+This project was developed as a school/demo implementation for the Polytechnic University of the Philippines Open University System. Review and harden security, storage, logging, and deployment settings before using it in a real production environment.
