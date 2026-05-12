@@ -4,6 +4,9 @@
     --pup-gold: #C8A951;
     --pup-dark: #1A0A0A;
     --text-muted: #777;
+
+    /* Default background before JavaScript randomly selects one */
+    --login-bg: url('/assets/login-bg/login-1.png');
 }
 
 * {
@@ -30,7 +33,8 @@ body {
             rgba(139, 0, 0, 0.38) 45%,
             rgba(26, 10, 10, 0.50) 100%
         ),
-        url('/assets/login-campus.jpg') center / cover no-repeat;
+        var(--login-bg, url('/assets/login-bg/login-1.png')) center / cover no-repeat;
+    transition: background-image 0.35s ease-in-out;
 }
 
 /* LEFT SIDE */
@@ -41,7 +45,6 @@ body {
     align-items: center;
     justify-content: center;
 
-    /* closer to reference */
     padding: 40px 48px 70px;
     color: #fff;
     text-align: center;
