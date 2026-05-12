@@ -4,377 +4,52 @@
     <title>Email Notifications</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/assets/favicon-32x32.png}" href="/assets/favicon-32x32.png">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
 
     <style>
-        .email-page #topbar {
-            height: 56px;
-            min-height: 56px;
-            padding: 0 28px;
-        }
-
-        .email-page .topbar-title {
-            font-size: 20px;
-            font-weight: 800;
-            color: #8B0000;
-        }
-
-        .email-page .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .email-page #topbar .btn {
-            height: 36px;
-            min-height: 36px;
-            padding: 0 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 800;
-        }
-
-        .email-page #content {
-            padding: 28px;
-        }
-
-        .email-page .email-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-            align-items: start;
-        }
-
-        .email-page .email-card {
-            background: #ffffff;
-            border: 1px solid rgba(139, 0, 0, 0.10);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 10px rgba(139, 0, 0, 0.05);
-        }
-
-        .email-page .email-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            margin-bottom: 18px;
-        }
-
-        .email-page .email-card-title {
-            margin: 0;
-            color: #8B0000;
-            font-size: 18px;
-            font-weight: 800;
-        }
-
-        .email-page .send-notification-btn {
-            height: 36px;
-            min-height: 36px;
-            border-radius: 10px;
-            padding: 0 16px;
-            font-size: 13px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .email-page .email-log-list {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .email-page .email-log-item {
-            display: grid;
-            grid-template-columns: 34px 1fr auto;
-            gap: 14px;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0ebe8;
-        }
-
-        .email-page .email-log-item:last-child {
-            border-bottom: none;
-        }
-
-        .email-page .email-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #f5eded;
-            font-size: 15px;
-        }
-
-        .email-page .email-subject {
-            color: #1f1515;
-            font-size: 14px;
-            font-weight: 800;
-            line-height: 1.25;
-        }
-
-        .email-page .email-meta {
-            margin-top: 3px;
-            color: #7a7171;
-            font-size: 13px;
-            line-height: 1.35;
-        }
-
-        .email-page .status-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 52px;
-            min-height: 34px;
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .email-page .status-sent {
-            background: #cdeedc;
-            color: #1f7a52;
-        }
-
-        .email-page .status-queued {
-            background: #fff0c7;
-            color: #a86200;
-        }
-
-        .email-page .empty-state {
-            padding: 24px 8px;
-            color: #7a7171;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .email-page .reminder-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .email-page .reminder-item {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 14px;
-            align-items: center;
-            padding: 16px 18px;
-            border-radius: 12px;
-        }
-
-        .email-page .reminder-item.danger {
-            background: #f7eeee;
-        }
-
-        .email-page .reminder-item.warn {
-            background: #fff3d7;
-        }
-
-        .email-page .reminder-item.success {
-            background: #e8f8ef;
-        }
-
-        .email-page .reminder-title {
-            color: #8B0000;
-            font-size: 14px;
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-
-        .email-page .reminder-meta {
-            color: #7a7171;
-            font-size: 13px;
-            line-height: 1.4;
-        }
-
-        .email-page .reminder-side {
-            color: #8B0000;
-            font-size: 12px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .email-modal-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            background: rgba(35, 20, 20, 0.58);
-        }
-
-        .email-modal-overlay.open {
-            display: flex;
-        }
-
-        .email-modal {
-            width: 100%;
-            max-width: 690px;
-            max-height: 90vh;
-            overflow-y: auto;
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 26px 28px;
-            box-shadow: 0 24px 70px rgba(26, 10, 10, 0.28);
-        }
-
-        .email-modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 22px;
-        }
-
-        .email-modal-header h2 {
-            margin: 0;
-            color: #8B0000;
-            font-size: 21px;
-            font-weight: 800;
-        }
-
-        .email-modal-close {
-            border: none;
-            background: transparent;
-            color: #aaa;
-            font-size: 28px;
-            font-weight: 700;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .email-modal-close:hover {
-            color: #8B0000;
-        }
-
-        .email-modal-form {
-            display: grid;
-            gap: 16px;
-        }
-
-        .email-modal-form .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .email-modal-form label {
-            color: #8B0000;
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.35px;
-        }
-
-        .email-modal-form input,
-        .email-modal-form select,
-        .email-modal-form textarea {
-            width: 100%;
-            min-height: 44px;
-            border: 1px solid #ddd6cf;
-            border-radius: 9px;
-            padding: 10px 14px;
-            font-family: 'DM Sans', system-ui, sans-serif;
-            font-size: 14px;
-            background: #ffffff;
-            color: #1a0a0a;
-            outline: none;
-        }
-
-        .email-modal-form textarea {
-            min-height: 160px;
-            resize: vertical;
-            line-height: 1.65;
-        }
-
-        .email-modal-form input:focus,
-        .email-modal-form select:focus,
-        .email-modal-form textarea:focus {
-            border-color: #8B0000;
-            box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.1);
-        }
-
-        .email-modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 4px;
-        }
-
-        .email-modal-actions .btn {
-            min-height: 42px;
-            border-radius: 10px;
-            padding: 8px 18px;
-            font-weight: 700;
-        }
-
-        .email-preview-note {
-            background: #e8f9ef;
-            color: #065f46;
-            border-radius: 8px;
-            padding: 12px 14px;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        @media (max-width: 1000px) {
-            .email-page .email-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .email-page #content {
-                padding: 18px;
-            }
-
-            .email-page .email-card {
-                padding: 20px;
-            }
-
-            .email-page .email-card-header {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .email-page .send-notification-btn {
-                width: 100%;
-            }
-
-            .email-page .email-log-item {
-                grid-template-columns: 34px 1fr;
-            }
-
-            .email-page .email-log-item .status-pill {
-                grid-column: 2;
-                justify-self: start;
-            }
-
-            .email-modal {
-                padding: 22px 18px;
-            }
-
-            .email-modal-actions {
-                flex-direction: column;
-            }
-
-            .email-modal-actions .btn {
-                width: 100%;
-            }
-        }
+        .email-page #topbar { height: 56px; min-height: 56px; padding: 0 28px; }
+        .email-page .topbar-title { font-size: 20px; font-weight: 800; color: #8B0000; }
+        .email-page .topbar-right { display: flex; align-items: center; gap: 14px; }
+        .email-page #content { padding: 28px; }
+        .email-page .email-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+        .email-page .email-card { background: #fff; border: 1px solid rgba(139, 0, 0, 0.10); border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(139, 0, 0, 0.05); }
+        .email-page .email-card-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+        .email-page .email-card-title { margin: 0; color: #8B0000; font-size: 18px; font-weight: 800; }
+        .email-page .send-notification-btn { height: 36px; min-height: 36px; border-radius: 10px; padding: 0 16px; font-size: 13px; font-weight: 800; white-space: nowrap; }
+        .email-page .email-log-list { display: flex; flex-direction: column; }
+        .email-page .email-log-item { display: grid; grid-template-columns: 34px 1fr auto; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0ebe8; }
+        .email-page .email-log-item:last-child { border-bottom: none; }
+        .email-page .email-icon { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #f5eded; font-size: 15px; }
+        .email-page .email-subject { color: #1f1515; font-size: 14px; font-weight: 800; line-height: 1.25; }
+        .email-page .email-meta { margin-top: 3px; color: #7a7171; font-size: 13px; line-height: 1.35; }
+        .email-page .status-pill { display: inline-flex; align-items: center; justify-content: center; min-width: 52px; min-height: 34px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+        .email-page .status-sent { background: #cdeedc; color: #1f7a52; }
+        .email-page .status-queued { background: #fff0c7; color: #a86200; }
+        .email-page .empty-state { padding: 24px 8px; color: #7a7171; font-size: 14px; line-height: 1.5; }
+        .email-page .reminder-list { display: flex; flex-direction: column; gap: 12px; }
+        .email-page .reminder-item { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; padding: 16px 18px; border-radius: 12px; }
+        .email-page .reminder-item.danger { background: #f7eeee; }
+        .email-page .reminder-item.warn { background: #fff3d7; }
+        .email-page .reminder-item.success { background: #e8f8ef; }
+        .email-page .reminder-title { color: #8B0000; font-size: 14px; font-weight: 800; margin-bottom: 5px; }
+        .email-page .reminder-meta { color: #7a7171; font-size: 13px; line-height: 1.4; }
+        .email-page .reminder-side { color: #8B0000; font-size: 12px; font-weight: 800; white-space: nowrap; }
+        .email-modal-overlay { position: fixed; inset: 0; z-index: 9999; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(35, 20, 20, 0.58); }
+        .email-modal-overlay.open { display: flex; }
+        .email-modal { width: 100%; max-width: 690px; max-height: 90vh; overflow-y: auto; background: #fff; border-radius: 16px; padding: 26px 28px; box-shadow: 0 24px 70px rgba(26, 10, 10, 0.28); }
+        .email-modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+        .email-modal-header h2 { margin: 0; color: #8B0000; font-size: 21px; font-weight: 800; }
+        .email-modal-close { border: none; background: transparent; color: #aaa; font-size: 28px; font-weight: 700; cursor: pointer; line-height: 1; }
+        .email-modal-form { display: grid; gap: 16px; }
+        .email-modal-form .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .email-modal-form label { color: #8B0000; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.35px; }
+        .email-modal-form input, .email-modal-form select, .email-modal-form textarea { width: 100%; min-height: 44px; border: 1px solid #ddd6cf; border-radius: 9px; padding: 10px 14px; font-family: 'DM Sans', system-ui, sans-serif; font-size: 14px; background: #fff; color: #1a0a0a; outline: none; }
+        .email-modal-form textarea { min-height: 160px; resize: vertical; line-height: 1.65; }
+        .email-modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 4px; }
+        .email-preview-note { background: #e8f9ef; color: #065f46; border-radius: 8px; padding: 12px 14px; font-size: 13px; font-weight: 700; }
+        @media (max-width: 1000px) { .email-page .email-layout { grid-template-columns: 1fr; } }
     </style>
 </head>
 
@@ -394,41 +69,23 @@
 
         <nav class="sb-section" aria-label="Main navigation">
             <div class="sb-section-label">Main</div>
-            <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard">
-                <span class="icon">⌂</span>Dashboard
-            </a>
-            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants">
-                <span class="icon">◎</span>Students / Applicants
-            </a>
-            <a class="sb-nav-item" th:href="@{/requirements}" href="/requirements">
-                <span class="icon">▣</span>Document Submissions
-            </a>
+            <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
+            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Students / Applicants</a>
+            <a class="sb-nav-item" th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Document Submissions</a>
         </nav>
 
         <nav class="sb-section" aria-label="Management navigation">
             <div class="sb-section-label">Management</div>
-            <a class="sb-nav-item active" th:href="@{/email-notifications}" href="/email-notifications">
-                <span class="icon">✉</span>Email Notifications
-            </a>
-            <a class="sb-nav-item" th:href="@{/tracking-lookup}" href="/tracking-lookup">
-                <span class="icon">⌕</span>Tracking Lookup
-            </a>
-            <a class="sb-nav-item" th:href="@{/reports}" href="/reports">
-                <span class="icon">▤</span>Reports &amp; Filters
-            </a>
+            <a class="sb-nav-item active" th:href="@{/email-notifications}" href="/email-notifications"><span class="icon">✉</span>Email Notifications</a>
+            <a class="sb-nav-item" th:href="@{/tracking-lookup}" href="/tracking-lookup"><span class="icon">⌕</span>Tracking Lookup</a>
+            <a class="sb-nav-item" th:href="@{/reports}" href="/reports"><span class="icon">▤</span>Reports &amp; Filters</a>
         </nav>
 
         <nav class="sb-section" aria-label="System navigation">
             <div class="sb-section-label">System</div>
-            <a class="sb-nav-item" th:href="@{/logs}" href="/logs">
-                <span class="icon">≡</span>Audit Logs
-            </a>
-            <a class="sb-nav-item" th:href="@{/users/new}" href="/users/new">
-                <span class="icon">＋</span>Create Account
-            </a>
-            <a class="sb-nav-item" th:href="@{/users}" href="/users">
-                <span class="icon">⚙</span>Settings
-            </a>
+            <a class="sb-nav-item" th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Audit Logs</a>
+            <a class="sb-nav-item" th:href="@{/users/new}" href="/users/new"><span class="icon">＋</span>Create Account</a>
+            <a class="sb-nav-item" th:href="@{/users}" href="/users"><span class="icon">⚙</span>Settings</a>
         </nav>
 
         <div class="sb-bottom">
@@ -439,18 +96,13 @@
                     <div class="sb-user-role">Registrar Office</div>
                 </div>
             </div>
-            <a class="sb-nav-item logout" th:href="@{/logout}" href="/logout">
-                <span class="icon">↪</span>Sign Out
-            </a>
+            <a class="sb-nav-item logout" th:href="@{/logout}" href="/logout"><span class="icon">↪</span>Sign Out</a>
         </div>
     </aside>
 
     <main id="main">
         <header id="topbar">
-            <div>
-                <div class="topbar-title">Email Notifications</div>
-            </div>
-
+            <div><div class="topbar-title">Email Notifications</div></div>
             <div class="topbar-right">
                 <span class="ay-label">AY 2025–2026 · 1st Semester</span>
                 <a class="btn btn-primary" th:href="@{/applicants/new}" href="/applicants/new">+ New Applicant</a>
@@ -479,16 +131,12 @@
                             <div class="email-icon">✉</div>
 
                             <div>
-                                <div class="email-subject"
-                                     th:text="${log['user_activity_log_description']}">
+                                <div class="email-subject" th:text="${log['user_activity_log_description']}">
                                     Sent email notification
                                 </div>
 
                                 <div class="email-meta">
-                                    <span th:text="${log['user_activity_log_new_value']}">
-                                        Subject and remarks
-                                    </span>
-
+                                    <span th:text="${log['user_activity_log_new_value']}">Subject and remarks</span>
                                     <span th:if="${log['user_activity_log_performed_at'] != null}">
                                         ·
                                         <span th:text="${#dates.format(log['user_activity_log_performed_at'], 'MMM dd, yyyy hh:mm a')}">
@@ -512,9 +160,7 @@
                         <div class="reminder-item danger">
                             <div>
                                 <div class="reminder-title">Weekly Pending Reminder</div>
-                                <div class="reminder-meta">
-                                    Every Monday, 8:00 AM — sends to students with pending requirements
-                                </div>
+                                <div class="reminder-meta">Every Monday, 8:00 AM — sends to students with pending requirements</div>
                                 <span class="status-pill status-sent" style="margin-top: 8px;">Active</span>
                             </div>
                             <div class="reminder-side">Manual setup</div>
@@ -523,9 +169,7 @@
                         <div class="reminder-item warn">
                             <div>
                                 <div class="reminder-title">Deadline Alert</div>
-                                <div class="reminder-meta">
-                                    7 days before document deadline — sent automatically when configured
-                                </div>
+                                <div class="reminder-meta">7 days before document deadline — sent automatically when configured</div>
                                 <span class="status-pill status-queued" style="margin-top: 8px;">Active</span>
                             </div>
                             <div class="reminder-side">Triggered when ≤7 days</div>
@@ -534,9 +178,7 @@
                         <div class="reminder-item success">
                             <div>
                                 <div class="reminder-title">Acknowledgment Receipt</div>
-                                <div class="reminder-meta">
-                                    Sent when document is logged as received
-                                </div>
+                                <div class="reminder-meta">Sent when document is logged as received</div>
                                 <span class="status-pill status-sent" style="margin-top: 8px;">Active</span>
                             </div>
                         </div>
@@ -570,7 +212,6 @@
 
                 <select id="emailRecipient" name="recipient" required>
                     <option value="" disabled selected>Select recipient</option>
-
                     <option th:each="recipient : ${recipients}"
                             th:value="${recipient['email']}"
                             th:text="${recipient['full_name'] + ' (' + recipient['email'] + ')'}">
@@ -707,7 +348,6 @@ Thank you.</textarea>
             emailType.addEventListener("change", function () {
                 const selected = templates[emailType.value];
                 if (!selected) return;
-
                 subject.value = selected.subject;
                 body.value = selected.body;
             });
