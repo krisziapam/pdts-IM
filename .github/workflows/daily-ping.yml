@@ -13,4 +13,4 @@ jobs:
     steps:
       - name: Ping Render site
         run: |
-          curl -fsS --retry 3 --max-time 20 https://pdts-im.onrender.com/login > /dev/null
+          curl -L -fsS --retry 3 --max-time 20 https://pdts-im.onrender.com/login > /dev/null
