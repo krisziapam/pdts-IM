@@ -272,5 +272,73 @@ public class EmailService {
             case "For Resubmission" -> "#c8a951";
             default -> "#ffa500";
         };
+
     }
+public void sendManualEmail(String toEmail, String subject, String body, String remarks) {
+    String safeEmail = Objects.requireNonNullElse(toEmail, "").trim();
+    String safeSubject = Objects.requireNonNullElse(subject, "[PDTS] Email Notification").trim();
+    String safeBody = Objects.requireNonNullElse(body, "").trim();
+    String safeRemarks = Objects.requireNonNullElse(remarks, "").trim();
+
+    if (safeEmail.isBlank()) {
+        throw new IllegalArgumentException("Recipient email is required.");
+    }
+
+    if (fromEmail == null || fromEmail.isBlank()) {
+        throw new IllegalStateException("MAIL_USERNAME is missing in Render Environment Variables.");
+    }
+
+    try {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom(fromEmail);
+        helper.setTo(safeEmail);
+        helper.setSubject(safeSubject);
+
+        String htmlBody =
+                "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>" +
+                "<div style='background:#8B0000;padding:20px;text-align:center;'>" +
+                "<h2 style='color:#fff;margin:0;'>PUP Open University System</h2>" +
+                "<p style='color:#ffcdd2;margin:4px 0 0;'>Office of the University Registrar — PDTS</p>" +
+                "</div>" +
+                "<div style='padding:24px;'>" +
+                "<div style='line-height:1.6;'>" + escapeHtml(safeBody).replace("\n", "<br>") + "</div>" +
+                (
+                    safeRemarks.isBlank()
+                    ? ""
+                    : "<div style='background:#f9f9f9;border-left:4px solid #8B0000;padding:12px;margin-top:20px;'>" +
+                      "<strong>Remarks:</strong><br>" +
+                      escapeHtml(safeRemarks).replace("\n", "<br>") +
+                      "</div>"
+                ) +
+                "<br>" +
+                "<p style='color:#555;font-size:.9em;'>PUP OUS — Document Tracking System</p>" +
+                "</div>" +
+                "</div>";
+
+        helper.setText(htmlBody, true);
+        mailSender.send(message);
+
+        System.out.println("[EmailService] Manual email sent to: " + safeEmail);
+
+    } catch (Exception e) {
+        System.err.println("[EmailService] Failed to send manual email to " + safeEmail + ": " + e.getMessage());
+        throw new RuntimeException(e);
+    }
+}
+
+private String escapeHtml(String value) {
+    if (value == null) {
+        return "";
+    }
+
+    return value
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#39;");
+}
+    
 }
