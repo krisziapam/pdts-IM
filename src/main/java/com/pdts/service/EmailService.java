@@ -30,7 +30,7 @@ public class EmailService {
             String docType, String trackingNo,
             String status, String rejectionReason) {
 
-        String safeEmail = Objects.requireNonNullElse(toEmail, "");
+        String safeEmail = Objects.requireNonNullElse(toEmail, "").trim();
         String safeName = Objects.requireNonNullElse(studentName, "Student");
         String safeDoc = Objects.requireNonNullElse(docType, "Document");
         String safeTrack = Objects.requireNonNullElse(trackingNo, "—");
@@ -38,10 +38,13 @@ public class EmailService {
         String safeRejection = Objects.requireNonNullElse(rejectionReason, "");
 
         if (safeEmail.isBlank()) {
+            System.err.println("[EmailService] Status email skipped: recipient email is blank.");
             return;
         }
 
         try {
+            validateEmailConfig();
+
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -63,7 +66,7 @@ public class EmailService {
             System.out.println("[EmailService] Status email sent to: " + safeEmail);
 
         } catch (Exception e) {
-            System.err.println("[EmailService] Failed to send status email: " + e.getMessage());
+            logEmailError("status email", safeEmail, e);
         }
     }
 
@@ -71,16 +74,19 @@ public class EmailService {
     public void sendTokenEmail(String toEmail, String studentName,
             String referenceNo, String plainToken) {
 
-        String safeEmail = Objects.requireNonNullElse(toEmail, "");
+        String safeEmail = Objects.requireNonNullElse(toEmail, "").trim();
         String safeName = Objects.requireNonNullElse(studentName, "Student");
         String safeRef = Objects.requireNonNullElse(referenceNo, "—");
         String safeToken = Objects.requireNonNullElse(plainToken, "—");
 
         if (safeEmail.isBlank()) {
+            System.err.println("[EmailService] Token email skipped: recipient email is blank.");
             return;
         }
 
         try {
+            validateEmailConfig();
+
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -96,7 +102,7 @@ public class EmailService {
             System.out.println("[EmailService] Token email sent to: " + safeEmail);
 
         } catch (Exception e) {
-            System.err.println("[EmailService] Failed to send token email: " + e.getMessage());
+            logEmailError("token email", safeEmail, e);
         }
     }
 
@@ -104,15 +110,18 @@ public class EmailService {
     public void sendDeadlineReminderEmail(String toEmail, String studentName,
             String docType, long daysLeft) {
 
-        String safeEmail = Objects.requireNonNullElse(toEmail, "");
+        String safeEmail = Objects.requireNonNullElse(toEmail, "").trim();
         String safeName = Objects.requireNonNullElse(studentName, "Student");
         String safeDoc = Objects.requireNonNullElse(docType, "Document");
 
         if (safeEmail.isBlank()) {
+            System.err.println("[EmailService] Reminder email skipped: recipient email is blank.");
             return;
         }
 
         try {
+            validateEmailConfig();
+
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -146,14 +155,29 @@ public class EmailService {
             System.out.println("[EmailService] Reminder email sent to: " + safeEmail);
 
         } catch (Exception e) {
-            System.err.println("[EmailService] Failed to send reminder email: " + e.getMessage());
+            logEmailError("reminder email", safeEmail, e);
+        }
+    }
+
+    private void validateEmailConfig() {
+        if (fromEmail == null || fromEmail.isBlank()) {
+            throw new IllegalStateException("MAIL_USERNAME is missing. Add MAIL_USERNAME in Render Environment Variables.");
         }
     }
 
     private void setSender(MimeMessageHelper helper) throws Exception {
-        if (fromEmail != null && !fromEmail.isBlank()) {
-            helper.setFrom(fromEmail);
+        helper.setFrom(fromEmail);
+    }
+
+    private void logEmailError(String emailType, String recipient, Exception e) {
+        String message = e.getMessage();
+
+        if (message == null || message.isBlank()) {
+            message = e.getClass().getSimpleName();
         }
+
+        System.err.println("[EmailService] Failed to send " + emailType + " to " + recipient + ": " + message);
+        e.printStackTrace();
     }
 
     private String buildStatusEmailBody(String name, String docType, String trackingNo,
