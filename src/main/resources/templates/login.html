@@ -103,5 +103,24 @@
         document.body.style.setProperty("--login-bg", `url('${selected}')`);
     });
 </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const backgrounds = [
+            "/assets/login-bg/login-1.png",
+            "/assets/login-bg/login-2.png",
+            "/assets/login-bg/login-3.png",
+            "/assets/login-bg/login-4.png",
+            "/assets/login-bg/login-5.png",
+            "/assets/login-bg/login-6.png",
+            "/assets/login-bg/login-7.png",
+            "/assets/login-bg/login-8.png"
+        ];
+
+        const selected = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+        document.documentElement.style.setProperty("--login-bg", `url('${selected}')`);
+    });
+</script>
+    
 </body>
 </html>
