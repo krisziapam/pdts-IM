@@ -1,4 +1,3 @@
-// Path: src/main/java/com/pdts/service/EmailService.java
 package com.pdts.service;
 
 import jakarta.mail.internet.MimeMessage;
@@ -45,14 +44,7 @@ public class EmailService {
         try {
             validateEmailConfig();
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            setSender(helper);
-            helper.setTo(safeEmail);
-            helper.setSubject("[PDTS] Document Status Update — " + safeDoc);
-
-            String statusBody = buildStatusEmailBody(
+            String htmlBody = buildStatusEmailBody(
                     safeName,
                     safeDoc,
                     safeTrack,
@@ -60,8 +52,7 @@ public class EmailService {
                     safeRejection
             );
 
-            helper.setText(statusBody, true);
-            mailSender.send(message);
+            sendHtmlEmail(safeEmail, "[PDTS] Document Status Update — " + safeDoc, htmlBody);
 
             System.out.println("[EmailService] Status email sent to: " + safeEmail);
 
@@ -87,17 +78,9 @@ public class EmailService {
         try {
             validateEmailConfig();
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            String htmlBody = buildTokenEmailBody(safeName, safeRef, safeToken);
 
-            setSender(helper);
-            helper.setTo(safeEmail);
-            helper.setSubject("[PDTS] Your Document Tracking Access Token");
-
-            String tokenBody = buildTokenEmailBody(safeName, safeRef, safeToken);
-
-            helper.setText(tokenBody, true);
-            mailSender.send(message);
+            sendHtmlEmail(safeEmail, "[PDTS] Your Document Tracking Access Token", htmlBody);
 
             System.out.println("[EmailService] Token email sent to: " + safeEmail);
 
@@ -122,35 +105,22 @@ public class EmailService {
         try {
             validateEmailConfig();
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            setSender(helper);
-            helper.setTo(safeEmail);
-            helper.setSubject("[PDTS] Document Submission Reminder — " + daysLeft + " day(s) left");
-
             String urgency = daysLeft <= 1
                     ? "TODAY IS THE DEADLINE."
                     : daysLeft + " day(s) remaining.";
 
-            String body = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>" +
-                    "<div style='background:#8B0000;padding:20px;text-align:center;'>" +
-                    "<h2 style='color:#fff;margin:0;'>PUP Open University System</h2>" +
-                    "<p style='color:#ffcdd2;margin:4px 0 0;'>Office of the University Registrar</p>" +
-                    "</div>" +
+            String htmlBody = buildShell(
+                    "Dear <strong>" + escapeHtml(safeName) + "</strong>,",
+                    "<p>Reminder: your <strong>" + escapeHtml(safeDoc) + "</strong> deadline is approaching.</p>"
+                            + "<p style='font-size:1.1em;color:#c62828;font-weight:bold;'>" + escapeHtml(urgency) + "</p>"
+                            + "<p>Please submit immediately to the OUS Registrar's Office.</p>"
+            );
 
-                    "<div style='padding:24px;'>" +
-                    "<p>Dear <strong>" + safeName + "</strong>,</p>" +
-                    "<p>Reminder: your <strong>" + safeDoc + "</strong> deadline is approaching.</p>" +
-                    "<p style='font-size:1.1em;color:#c62828;font-weight:bold;'>" + urgency + "</p>" +
-                    "<p>Please submit immediately to the OUS Registrar's Office.</p>" +
-                    "<br>" +
-                    "<p style='color:#555;font-size:.9em;'>PUP OUS — Document Tracking System</p>" +
-                    "</div>" +
-                    "</div>";
-
-            helper.setText(body, true);
-            mailSender.send(message);
+            sendHtmlEmail(
+                    safeEmail,
+                    "[PDTS] Document Submission Reminder — " + daysLeft + " day(s) left",
+                    htmlBody
+            );
 
             System.out.println("[EmailService] Reminder email sent to: " + safeEmail);
 
@@ -159,14 +129,60 @@ public class EmailService {
         }
     }
 
+    public void sendManualEmail(String toEmail, String subject, String body, String remarks) {
+        String safeEmail = Objects.requireNonNullElse(toEmail, "").trim();
+        String safeSubject = Objects.requireNonNullElse(subject, "[PDTS] Email Notification").trim();
+        String safeBody = Objects.requireNonNullElse(body, "").trim();
+        String safeRemarks = Objects.requireNonNullElse(remarks, "").trim();
+
+        if (safeEmail.isBlank()) {
+            throw new IllegalArgumentException("Recipient email is required.");
+        }
+
+        validateEmailConfig();
+
+        try {
+            String remarksBlock = safeRemarks.isBlank()
+                    ? ""
+                    : "<div style='background:#f9f9f9;border-left:4px solid #8B0000;padding:12px;margin-top:20px;'>"
+                    + "<strong>Remarks:</strong><br>"
+                    + escapeHtml(safeRemarks).replace("\n", "<br>")
+                    + "</div>";
+
+            String htmlBody = buildShell(
+                    "",
+                    "<div style='line-height:1.6;'>"
+                    + escapeHtml(safeBody).replace("\n", "<br>")
+                    + "</div>"
+                    + remarksBlock
+            );
+
+            sendHtmlEmail(safeEmail, safeSubject, htmlBody);
+
+            System.out.println("[EmailService] Manual email sent to: " + safeEmail);
+
+        } catch (Exception e) {
+            System.err.println("[EmailService] Failed to send manual email to " + safeEmail + ": " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void sendHtmlEmail(String toEmail, String subject, String htmlBody) throws Exception {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom(fromEmail);
+        helper.setTo(toEmail);
+        helper.setSubject(subject);
+        helper.setText(htmlBody, true);
+
+        mailSender.send(message);
+    }
+
     private void validateEmailConfig() {
         if (fromEmail == null || fromEmail.isBlank()) {
             throw new IllegalStateException("MAIL_USERNAME is missing. Add MAIL_USERNAME in Render Environment Variables.");
         }
-    }
-
-    private void setSender(MimeMessageHelper helper) throws Exception {
-        helper.setFrom(fromEmail);
     }
 
     private void logEmailError(String emailType, String recipient, Exception e) {
@@ -188,80 +204,73 @@ public class EmailService {
         String rejectionBlock = "";
         if (rejectionReason != null && !rejectionReason.isBlank()) {
             rejectionBlock =
-                    "<div style='background:#fff8f8;border-left:4px solid #dc3545;padding:12px;margin:16px 0;'>" +
-                    "<strong>Rejection Reason:</strong><br>" +
-                    rejectionReason +
-                    "</div>";
+                    "<div style='background:#fff8f8;border-left:4px solid #dc3545;padding:12px;margin:16px 0;'>"
+                    + "<strong>Rejection Reason:</strong><br>"
+                    + escapeHtml(rejectionReason)
+                    + "</div>";
         }
 
-        return "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>" +
-                "<div style='background:#8B0000;padding:20px;text-align:center;'>" +
-                "<h2 style='color:#fff;margin:0;'>PUP Open University System</h2>" +
-                "<p style='color:#ffcdd2;margin:4px 0 0;'>Office of the University Registrar — PDTS</p>" +
-                "</div>" +
+        String content =
+                "<p>Your document status has been updated:</p>"
+                + "<table style='width:100%;border-collapse:collapse;margin:16px 0;'>"
+                + "<tr>"
+                + "<td style='padding:8px;background:#f5f5f5;width:40%;'><strong>Document</strong></td>"
+                + "<td style='padding:8px;'>" + escapeHtml(docType) + "</td>"
+                + "</tr>"
+                + "<tr>"
+                + "<td style='padding:8px;background:#f5f5f5;'><strong>Tracking No.</strong></td>"
+                + "<td style='padding:8px;font-family:monospace;'>" + escapeHtml(trackingNo) + "</td>"
+                + "</tr>"
+                + "<tr>"
+                + "<td style='padding:8px;background:#f5f5f5;'><strong>Status</strong></td>"
+                + "<td style='padding:8px;'>"
+                + "<span style='background:" + statusColor + ";color:#fff;padding:4px 10px;border-radius:4px;font-size:.9em;'>"
+                + escapeHtml(status)
+                + "</span>"
+                + "</td>"
+                + "</tr>"
+                + "</table>"
+                + rejectionBlock
+                + "<p>Visit the PUP OUS Document Status Portal to view your full status.</p>";
 
-                "<div style='padding:24px;'>" +
-                "<p>Dear <strong>" + name + "</strong>,</p>" +
-                "<p>Your document status has been updated:</p>" +
-
-                "<table style='width:100%;border-collapse:collapse;margin:16px 0;'>" +
-                "<tr>" +
-                "<td style='padding:8px;background:#f5f5f5;width:40%;'><strong>Document</strong></td>" +
-                "<td style='padding:8px;'>" + docType + "</td>" +
-                "</tr>" +
-
-                "<tr>" +
-                "<td style='padding:8px;background:#f5f5f5;'><strong>Tracking No.</strong></td>" +
-                "<td style='padding:8px;font-family:monospace;'>" + trackingNo + "</td>" +
-                "</tr>" +
-
-                "<tr>" +
-                "<td style='padding:8px;background:#f5f5f5;'><strong>Status</strong></td>" +
-                "<td style='padding:8px;'>" +
-                "<span style='background:" + statusColor + ";color:#fff;padding:4px 10px;border-radius:4px;font-size:.9em;'>" +
-                status +
-                "</span>" +
-                "</td>" +
-                "</tr>" +
-                "</table>" +
-
-                rejectionBlock +
-
-                "<p>Visit the PUP OUS Document Status Portal to view your full status.</p>" +
-                "<br>" +
-                "<p style='color:#555;font-size:.9em;'>PUP OUS — Document Tracking System</p>" +
-                "</div>" +
-                "</div>";
+        return buildShell("Dear <strong>" + escapeHtml(name) + "</strong>,", content);
     }
 
     private String buildTokenEmailBody(String name, String referenceNo, String plainToken) {
-        return "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>" +
-                "<div style='background:#8B0000;padding:20px;text-align:center;'>" +
-                "<h2 style='color:#fff;margin:0;'>PUP Open University System</h2>" +
-                "<p style='color:#ffcdd2;margin:4px 0 0;'>Office of the University Registrar — PDTS</p>" +
-                "</div>" +
+        String content =
+                "<p>Your application has been received. Use the details below to track your documents:</p>"
+                + "<div style='background:#f9f9f9;border:1px solid #ddd;border-radius:8px;padding:20px;margin:16px 0;text-align:center;'>"
+                + "<p style='margin:0 0 8px;color:#555;'>Application Reference Number</p>"
+                + "<p style='font-size:1.4em;font-weight:bold;font-family:monospace;color:#333;margin:0 0 16px;'>"
+                + escapeHtml(referenceNo)
+                + "</p>"
+                + "<p style='margin:0 0 8px;color:#555;'>Access Token</p>"
+                + "<p style='font-size:1.1em;font-weight:bold;font-family:monospace;color:#8B0000;margin:0;word-break:break-all;'>"
+                + escapeHtml(plainToken)
+                + "</p>"
+                + "</div>"
+                + "<p><strong>Important:</strong> Keep this token private. It expires in " + tokenExpiryDays + " days.</p>";
 
-                "<div style='padding:24px;'>" +
-                "<p>Dear <strong>" + name + "</strong>,</p>" +
-                "<p>Your application has been received. Use the details below to track your documents:</p>" +
+        return buildShell("Dear <strong>" + escapeHtml(name) + "</strong>,", content);
+    }
 
-                "<div style='background:#f9f9f9;border:1px solid #ddd;border-radius:8px;padding:20px;margin:16px 0;text-align:center;'>" +
-                "<p style='margin:0 0 8px;color:#555;'>Application Reference Number</p>" +
-                "<p style='font-size:1.4em;font-weight:bold;font-family:monospace;color:#333;margin:0 0 16px;'>" +
-                referenceNo +
-                "</p>" +
+    private String buildShell(String greeting, String content) {
+        String greetingBlock = greeting == null || greeting.isBlank()
+                ? ""
+                : "<p>" + greeting + "</p>";
 
-                "<p style='margin:0 0 8px;color:#555;'>Access Token</p>" +
-                "<p style='font-size:1.1em;font-weight:bold;font-family:monospace;color:#8B0000;margin:0;word-break:break-all;'>" +
-                plainToken +
-                "</p>" +
-                "</div>" +
-
-                "<p><strong>Important:</strong> Keep this token private. It expires in " + tokenExpiryDays + " days.</p>" +
-                "<br>" +
-                "<p style='color:#555;font-size:.9em;'>PUP OUS — Document Tracking System</p>" +
-                "</div>" +
-                "</div>";
+        return "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>"
+                + "<div style='background:#8B0000;padding:20px;text-align:center;'>"
+                + "<h2 style='color:#fff;margin:0;'>PUP Open University System</h2>"
+                + "<p style='color:#ffcdd2;margin:4px 0 0;'>Office of the University Registrar — PDTS</p>"
+                + "</div>"
+                + "<div style='padding:24px;'>"
+                + greetingBlock
+                + content
+                + "<br>"
+                + "<p style='color:#555;font-size:.9em;'>PUP OUS — Document Tracking System</p>"
+                + "</div>"
+                + "</div>";
     }
 
     private String getStatusColor(String status) {
@@ -272,73 +281,18 @@ public class EmailService {
             case "For Resubmission" -> "#c8a951";
             default -> "#ffa500";
         };
-
-    }
-public void sendManualEmail(String toEmail, String subject, String body, String remarks) {
-    String safeEmail = Objects.requireNonNullElse(toEmail, "").trim();
-    String safeSubject = Objects.requireNonNullElse(subject, "[PDTS] Email Notification").trim();
-    String safeBody = Objects.requireNonNullElse(body, "").trim();
-    String safeRemarks = Objects.requireNonNullElse(remarks, "").trim();
-
-    if (safeEmail.isBlank()) {
-        throw new IllegalArgumentException("Recipient email is required.");
     }
 
-    if (fromEmail == null || fromEmail.isBlank()) {
-        throw new IllegalStateException("MAIL_USERNAME is missing in Render Environment Variables.");
+    private String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
-
-    try {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-        helper.setFrom(fromEmail);
-        helper.setTo(safeEmail);
-        helper.setSubject(safeSubject);
-
-        String htmlBody =
-                "<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>" +
-                "<div style='background:#8B0000;padding:20px;text-align:center;'>" +
-                "<h2 style='color:#fff;margin:0;'>PUP Open University System</h2>" +
-                "<p style='color:#ffcdd2;margin:4px 0 0;'>Office of the University Registrar — PDTS</p>" +
-                "</div>" +
-                "<div style='padding:24px;'>" +
-                "<div style='line-height:1.6;'>" + escapeHtml(safeBody).replace("\n", "<br>") + "</div>" +
-                (
-                    safeRemarks.isBlank()
-                    ? ""
-                    : "<div style='background:#f9f9f9;border-left:4px solid #8B0000;padding:12px;margin-top:20px;'>" +
-                      "<strong>Remarks:</strong><br>" +
-                      escapeHtml(safeRemarks).replace("\n", "<br>") +
-                      "</div>"
-                ) +
-                "<br>" +
-                "<p style='color:#555;font-size:.9em;'>PUP OUS — Document Tracking System</p>" +
-                "</div>" +
-                "</div>";
-
-        helper.setText(htmlBody, true);
-        mailSender.send(message);
-
-        System.out.println("[EmailService] Manual email sent to: " + safeEmail);
-
-    } catch (Exception e) {
-        System.err.println("[EmailService] Failed to send manual email to " + safeEmail + ": " + e.getMessage());
-        throw new RuntimeException(e);
-    }
-}
-
-private String escapeHtml(String value) {
-    if (value == null) {
-        return "";
-    }
-
-    return value
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\"", "&quot;")
-            .replace("'", "&#39;");
-}
-    
 }
