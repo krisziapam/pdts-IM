@@ -4,18 +4,17 @@
     <title>Email Notifications</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" th:href="@{/assets/favicon-32x32.png}" href="/assets/favicon-32x32.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
 
     <style>
-        /* =========================================================
-           EMAIL NOTIFICATIONS - MATCH TARGET MOCKUP
-           ========================================================= */
-
         .email-page #topbar {
             height: 56px;
             min-height: 56px;
@@ -130,22 +129,6 @@
             line-height: 1.35;
         }
 
-        .email-page .tracking-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            min-height: 24px;
-            padding: 3px 10px;
-            border-radius: 6px;
-            background: #fff7df;
-            border: 1px solid #d7b95b;
-            color: #765600;
-            font-size: 12px;
-            font-weight: 800;
-            white-space: nowrap;
-            margin-left: 5px;
-        }
-
         .email-page .status-pill {
             display: inline-flex;
             align-items: center;
@@ -167,6 +150,13 @@
         .email-page .status-queued {
             background: #fff0c7;
             color: #a86200;
+        }
+
+        .email-page .empty-state {
+            padding: 24px 8px;
+            color: #7a7171;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .email-page .reminder-list {
@@ -216,7 +206,6 @@
             white-space: nowrap;
         }
 
-        /* Floating modal */
         .email-modal-overlay {
             position: fixed;
             inset: 0;
@@ -333,17 +322,12 @@
         }
 
         .email-preview-note {
-            display: none;
             background: #e8f9ef;
             color: #065f46;
             border-radius: 8px;
             padding: 12px 14px;
             font-size: 13px;
             font-weight: 700;
-        }
-
-        .email-preview-note.show {
-            display: block;
         }
 
         @media (max-width: 1000px) {
@@ -410,23 +394,41 @@
 
         <nav class="sb-section" aria-label="Main navigation">
             <div class="sb-section-label">Main</div>
-            <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
-            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Students / Applicants</a>
-            <a class="sb-nav-item" th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Document Submissions</a>
+            <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard">
+                <span class="icon">⌂</span>Dashboard
+            </a>
+            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants">
+                <span class="icon">◎</span>Students / Applicants
+            </a>
+            <a class="sb-nav-item" th:href="@{/requirements}" href="/requirements">
+                <span class="icon">▣</span>Document Submissions
+            </a>
         </nav>
 
         <nav class="sb-section" aria-label="Management navigation">
             <div class="sb-section-label">Management</div>
-            <a class="sb-nav-item active" th:href="@{/email-notifications}" href="/email-notifications"><span class="icon">✉</span>Email Notifications</a>
-            <a class="sb-nav-item" th:href="@{/tracking-lookup}" href="/tracking-lookup"><span class="icon">⌕</span>Tracking Lookup</a>
-            <a class="sb-nav-item" th:href="@{/reports}" href="/reports"><span class="icon">▤</span>Reports &amp; Filters</a>
+            <a class="sb-nav-item active" th:href="@{/email-notifications}" href="/email-notifications">
+                <span class="icon">✉</span>Email Notifications
+            </a>
+            <a class="sb-nav-item" th:href="@{/tracking-lookup}" href="/tracking-lookup">
+                <span class="icon">⌕</span>Tracking Lookup
+            </a>
+            <a class="sb-nav-item" th:href="@{/reports}" href="/reports">
+                <span class="icon">▤</span>Reports &amp; Filters
+            </a>
         </nav>
 
         <nav class="sb-section" aria-label="System navigation">
             <div class="sb-section-label">System</div>
-            <a class="sb-nav-item" th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Audit Logs</a>
-            <a class="sb-nav-item" th:href="@{/users/new}" href="/users/new"><span class="icon">＋</span>Create Account</a>
-            <a class="sb-nav-item" th:href="@{/users}" href="/users"><span class="icon">⚙</span>Settings</a>
+            <a class="sb-nav-item" th:href="@{/logs}" href="/logs">
+                <span class="icon">≡</span>Audit Logs
+            </a>
+            <a class="sb-nav-item" th:href="@{/users/new}" href="/users/new">
+                <span class="icon">＋</span>Create Account
+            </a>
+            <a class="sb-nav-item" th:href="@{/users}" href="/users">
+                <span class="icon">⚙</span>Settings
+            </a>
         </nav>
 
         <div class="sb-bottom">
@@ -437,7 +439,9 @@
                     <div class="sb-user-role">Registrar Office</div>
                 </div>
             </div>
-            <a class="sb-nav-item logout" th:href="@{/logout}" href="/logout"><span class="icon">↪</span>Sign Out</a>
+            <a class="sb-nav-item logout" th:href="@{/logout}" href="/logout">
+                <span class="icon">↪</span>Sign Out
+            </a>
         </div>
     </aside>
 
@@ -446,6 +450,7 @@
             <div>
                 <div class="topbar-title">Email Notifications</div>
             </div>
+
             <div class="topbar-right">
                 <span class="ay-label">AY 2025–2026 · 1st Semester</span>
                 <a class="btn btn-primary" th:href="@{/applicants/new}" href="/applicants/new">+ New Applicant</a>
@@ -454,7 +459,8 @@
 
         <section id="content">
             <div th:if="${success}" class="flash success" th:text="${success}"></div>
-<div th:if="${error}" class="flash error" th:text="${error}"></div>
+            <div th:if="${error}" class="flash error" th:text="${error}"></div>
+
             <div class="email-layout">
                 <section class="email-card">
                     <div class="email-card-header">
@@ -465,73 +471,33 @@
                     </div>
 
                     <div class="email-log-list">
-                        <div class="email-log-item">
-                            <div class="email-icon">🔔</div>
-                            <div>
-                                <div class="email-subject">Reminder: Pending Requirements – Please Submit Required Documents</div>
-                                <div class="email-meta">To: juan.delacruz@email.com · 5/11/2026, 3:17:30 PM</div>
-                            </div>
-                            <span class="status-pill status-sent">Sent</span>
+                        <div th:if="${emailLogs == null || #lists.isEmpty(emailLogs)}" class="empty-state">
+                            No email notifications sent yet.
                         </div>
 
-                        <div class="email-log-item">
-                            <div class="email-icon">✅</div>
+                        <div th:each="log : ${emailLogs}" class="email-log-item">
+                            <div class="email-icon">✉</div>
+
                             <div>
-                                <div class="email-subject">
-                                    Acknowledgment: PSA Birth Certificate Received – DOC-2025-45108
+                                <div class="email-subject"
+                                     th:text="${log['user_activity_log_description']}">
+                                    Sent email notification
                                 </div>
+
                                 <div class="email-meta">
-                                    To: juan.delacruz@email.com · 5/11/2026, 2:33:55 PM
-                                    <span class="tracking-badge">📄 DOC-2025-45108</span>
-                                </div>
-                            </div>
-                            <span class="status-pill status-sent">Sent</span>
-                        </div>
+                                    <span th:text="${log['user_activity_log_new_value']}">
+                                        Subject and remarks
+                                    </span>
 
-                        <div class="email-log-item">
-                            <div class="email-icon">✅</div>
-                            <div>
-                                <div class="email-subject">
-                                    Acknowledgment: PSA Birth Certificate Received – DOC-2025-00001
-                                </div>
-                                <div class="email-meta">
-                                    To: juan.delacruz@email.com · 2025-04-01 10:23
-                                    <span class="tracking-badge">📄 DOC-2025-00001</span>
+                                    <span th:if="${log['user_activity_log_performed_at'] != null}">
+                                        ·
+                                        <span th:text="${#dates.format(log['user_activity_log_performed_at'], 'MMM dd, yyyy hh:mm a')}">
+                                            May 11, 2026 03:17 PM
+                                        </span>
+                                    </span>
                                 </div>
                             </div>
-                            <span class="status-pill status-sent">Sent</span>
-                        </div>
 
-                        <div class="email-log-item">
-                            <div class="email-icon">❌</div>
-                            <div>
-                                <div class="email-subject">Document Rejection Notice – Transcript of Records</div>
-                                <div class="email-meta">
-                                    To: pedro.reyes@email.com · 2025-04-03 14:45
-                                    <span class="tracking-badge">📄 DOC-2025-00004</span>
-                                </div>
-                            </div>
-                            <span class="status-pill status-sent">Sent</span>
-                        </div>
-
-                        <div class="email-log-item">
-                            <div class="email-icon">🔔</div>
-                            <div>
-                                <div class="email-subject">Action Required: Resubmission Needed – DOC-2025-00006</div>
-                                <div class="email-meta">
-                                    To: carlos.mendoza@email.com · 2025-04-05 09:12
-                                    <span class="tracking-badge">📄 DOC-2025-00006</span>
-                                </div>
-                            </div>
-                            <span class="status-pill status-sent">Sent</span>
-                        </div>
-
-                        <div class="email-log-item">
-                            <div class="email-icon">🔔</div>
-                            <div>
-                                <div class="email-subject">Reminder: Pending Graduation Requirements</div>
-                                <div class="email-meta">To: maria.santos@email.com · 2025-04-07 08:00</div>
-                            </div>
                             <span class="status-pill status-sent">Sent</span>
                         </div>
                     </div>
@@ -546,16 +512,20 @@
                         <div class="reminder-item danger">
                             <div>
                                 <div class="reminder-title">Weekly Pending Reminder</div>
-                                <div class="reminder-meta">Every Monday, 8:00 AM — sends to students with pending requirements</div>
+                                <div class="reminder-meta">
+                                    Every Monday, 8:00 AM — sends to students with pending requirements
+                                </div>
                                 <span class="status-pill status-sent" style="margin-top: 8px;">Active</span>
                             </div>
-                            <div class="reminder-side">Next: Monday, Apr 14</div>
+                            <div class="reminder-side">Manual setup</div>
                         </div>
 
                         <div class="reminder-item warn">
                             <div>
                                 <div class="reminder-title">Deadline Alert</div>
-                                <div class="reminder-meta">7 days before document deadline — sent automatically</div>
+                                <div class="reminder-meta">
+                                    7 days before document deadline — sent automatically when configured
+                                </div>
                                 <span class="status-pill status-queued" style="margin-top: 8px;">Active</span>
                             </div>
                             <div class="reminder-side">Triggered when ≤7 days</div>
@@ -564,7 +534,9 @@
                         <div class="reminder-item success">
                             <div>
                                 <div class="reminder-title">Acknowledgment Receipt</div>
-                                <div class="reminder-meta">Sent immediately when document is logged as received</div>
+                                <div class="reminder-meta">
+                                    Sent when document is logged as received
+                                </div>
                                 <span class="status-pill status-sent" style="margin-top: 8px;">Active</span>
                             </div>
                         </div>
@@ -575,7 +547,6 @@
     </main>
 </div>
 
-<!-- SEND EMAIL NOTIFICATION MODAL -->
 <div class="email-modal-overlay" id="sendEmailModal" aria-hidden="true">
     <div class="email-modal" role="dialog" aria-modal="true" aria-labelledby="sendEmailTitle">
         <div class="email-modal-header">
@@ -583,20 +554,39 @@
             <button type="button" class="email-modal-close" data-close-email-modal aria-label="Close">&times;</button>
         </div>
 
-<form class="email-modal-form" id="emailNotificationForm" method="post" th:action="@{/email-notifications/send}">
-        <div class="form-group">
+        <form class="email-modal-form"
+              id="emailNotificationForm"
+              method="post"
+              th:action="@{/email-notifications/send}"
+              action="/email-notifications/send">
+
+            <input type="hidden"
+                   th:if="${_csrf != null}"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
+
+            <div class="form-group">
                 <label for="emailRecipient">Recipient</label>
-                <select id="emailRecipient" name="recipient">
-                    <option value="juan.delacruz@email.com">Dela Cruz, Juan S. (juan.delacruz@email.com)</option>
-                    <option value="maria.santos@email.com">Santos, Maria L. (maria.santos@email.com)</option>
-                    <option value="pedro.reyes@email.com">Reyes, Pedro (pedro.reyes@email.com)</option>
-                    <option value="ana.villanueva@email.com">Villanueva, Ana C. (ana.villanueva@email.com)</option>
+
+                <select id="emailRecipient" name="recipient" required>
+                    <option value="" disabled selected>Select recipient</option>
+
+                    <option th:each="recipient : ${recipients}"
+                            th:value="${recipient['email']}"
+                            th:text="${recipient['full_name'] + ' (' + recipient['email'] + ')'}">
+                        Student Name (email@example.com)
+                    </option>
                 </select>
+
+                <small th:if="${recipients == null || #lists.isEmpty(recipients)}"
+                       style="color:#8B0000;font-weight:700;">
+                    No applicants with email addresses found. Create an applicant with a valid email first.
+                </small>
             </div>
 
             <div class="form-group">
                 <label for="emailType">Email Type</label>
-                <select id="emailType" name="emailType">
+                <select id="emailType" name="emailType" required>
                     <option value="pending">Pending Requirements Reminder</option>
                     <option value="received">Acknowledgment Receipt</option>
                     <option value="rejected">Document Rejection Notice</option>
@@ -608,12 +598,13 @@
                 <label for="emailSubject">Subject</label>
                 <input id="emailSubject"
                        name="subject"
+                       required
                        value="Reminder: Pending Requirements – Please Submit Required Documents">
             </div>
 
             <div class="form-group">
                 <label for="emailBody">Message Body</label>
-                <textarea id="emailBody" name="body">Dear Student,
+                <textarea id="emailBody" name="body" required>Dear Student,
 
 This is a reminder that you have pending graduation requirements.
 
@@ -627,13 +618,17 @@ Thank you.</textarea>
                 <input id="emailRemarks" name="remarks" placeholder="Optional note...">
             </div>
 
-            <div class="email-preview-note" data-email-preview-note>
-                Email preview generated. Backend email sending can be connected later.
+            <div class="email-preview-note">
+                This email will be sent using your configured Gmail SMTP account.
             </div>
 
             <div class="email-modal-actions">
                 <button type="button" class="btn btn-outline" data-close-email-modal>Cancel</button>
-                <button type="submit" class="btn btn-primary">Send Email</button>
+                <button type="submit"
+                        class="btn btn-primary"
+                        th:disabled="${recipients == null || #lists.isEmpty(recipients)}">
+                    Send Email
+                </button>
             </div>
         </form>
     </div>
@@ -646,8 +641,6 @@ Thank you.</textarea>
         const modal = document.getElementById("sendEmailModal");
         const openButton = document.querySelector("[data-open-email-modal]");
         const closeButtons = document.querySelectorAll("[data-close-email-modal]");
-        const sendButton = document.querySelector("[data-send-email-preview]");
-        const notice = document.querySelector("[data-email-preview-note]");
         const emailType = document.getElementById("emailType");
         const subject = document.getElementById("emailSubject");
         const body = document.getElementById("emailBody");
@@ -655,19 +648,19 @@ Thank you.</textarea>
         const templates = {
             pending: {
                 subject: "Reminder: Pending Requirements – Please Submit Required Documents",
-                body: "Dear Student,\\n\\nThis is a reminder that you have pending graduation requirements.\\n\\nPlease submit the required documents at your earliest convenience.\\n\\nThank you."
+                body: "Dear Student,\n\nThis is a reminder that you have pending graduation requirements.\n\nPlease submit the required documents at your earliest convenience.\n\nThank you."
             },
             received: {
                 subject: "Acknowledgment: Document Received",
-                body: "Dear Student,\\n\\nThis is to confirm that your submitted document has been received by the Registrar's Office.\\n\\nYou will be notified once processing is complete.\\n\\nThank you."
+                body: "Dear Student,\n\nThis is to confirm that your submitted document has been received by the Registrar's Office.\n\nYou will be notified once processing is complete.\n\nThank you."
             },
             rejected: {
                 subject: "Document Rejection Notice – Action Required",
-                body: "Dear Student,\\n\\nYour submitted document requires correction or resubmission.\\n\\nPlease review the remarks and submit the corrected document as soon as possible.\\n\\nThank you."
+                body: "Dear Student,\n\nYour submitted document requires correction or resubmission.\n\nPlease review the remarks and submit the corrected document as soon as possible.\n\nThank you."
             },
             deadline: {
                 subject: "Deadline Alert – Required Documents Due Soon",
-                body: "Dear Student,\\n\\nThis is a reminder that the deadline for submitting your required document is approaching.\\n\\nPlease complete your submission before the due date.\\n\\nThank you."
+                body: "Dear Student,\n\nThis is a reminder that the deadline for submitting your required document is approaching.\n\nPlease complete your submission before the due date.\n\nThank you."
             }
         };
 
@@ -683,9 +676,6 @@ Thank you.</textarea>
             modal.classList.remove("open");
             modal.setAttribute("aria-hidden", "true");
             document.body.style.overflow = "";
-            if (notice) {
-                notice.classList.remove("show");
-            }
         }
 
         if (openButton) {
@@ -717,16 +707,9 @@ Thank you.</textarea>
             emailType.addEventListener("change", function () {
                 const selected = templates[emailType.value];
                 if (!selected) return;
+
                 subject.value = selected.subject;
                 body.value = selected.body;
-            });
-        }
-
-        if (sendButton) {
-            sendButton.addEventListener("click", function () {
-                if (notice) {
-                    notice.classList.add("show");
-                }
             });
         }
     });
