@@ -24,6 +24,7 @@ body {
 
 #login-page {
     min-height: 100vh;
+    position: relative;
     display: grid;
     grid-template-columns: 1.08fr 0.92fr;
     background:
@@ -220,6 +221,34 @@ body {
     color: #1D4ED8;
 }
 
+
+
+/* Landing page copyright notice */
+.landing-rights {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 14px;
+    z-index: 5;
+    padding: 0 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 12px;
+    line-height: 1.4;
+    pointer-events: none;
+}
+
+.landing-rights span {
+    display: inline-block;
+    max-width: min(920px, 100%);
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(26, 10, 10, 0.68);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(4px);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
     #login-page {
@@ -252,5 +281,22 @@ body {
 
     .login-system-card {
         margin-top: 30px;
+    }
+}
+
+
+@media (max-width: 900px) {
+    .landing-rights {
+        position: static;
+        margin: 0;
+        padding: 0 18px 18px;
+        background: rgba(26, 10, 10, 0.72);
+    }
+
+    .landing-rights span {
+        border-radius: 12px;
+        background: transparent;
+        border: none;
+        padding: 10px 0 0;
     }
 }
