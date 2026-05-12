@@ -62,6 +62,7 @@ INSERT INTO requirement_type (requirement_type_name) VALUES
 ('ALS Certificate of Rating'),
 ('TVET National Certificate (NC II/III)'),
 ('PSA Marriage Certificate');
+('Certificate of Employment');
 
 -- Rejection reasons
 INSERT INTO rejection_reason (rejection_reason_name, rejection_reason_description) VALUES
