@@ -1,0 +1,15 @@
+# Simulated daily request to your Render project so that the service doesn't go down
+name: Daily render ping
+
+on:
+  schedule:
+    - cron: '0 23 * * *' # Runs daily at midnight GMT+1
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  curl-website:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run curl on Website
+        run: curl -I https://pdts-im.onrender.com
