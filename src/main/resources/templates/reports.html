@@ -91,6 +91,50 @@
             box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08);
         }
 
+
+
+        .reports-page .filter-action-btn,
+        .reports-page .reset-filter-btn {
+            height: 44px;
+            border-radius: 12px;
+            padding: 0 18px;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .reports-page .filter-action-btn {
+            border: none;
+            background: #8B0000;
+            color: #ffffff;
+        }
+
+        .reports-page .filter-action-btn:hover {
+            background: #A4161A;
+        }
+
+        .reports-page .reset-filter-btn {
+            border: 1px solid #8B0000;
+            background: #ffffff;
+            color: #8B0000;
+        }
+
+        .reports-page .reset-filter-btn:hover {
+            background: #fff4f4;
+        }
+
+        .reports-page .empty-report-message {
+            color: #777;
+            font-size: 14px;
+            padding: 10px 0;
+        }
+
         .reports-page .report-stat-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -421,57 +465,65 @@
                     <button class="export-btn no-print" type="button" data-export-pdf>Export PDF</button>
                 </div>
 
-                <div class="report-filter-row no-print">
+                <form method="get" th:action="@{/reports}" class="report-filter-row no-print">
                     <span class="filter-label">Filter by:</span>
 
-                    <select aria-label="Filter by region">
-                        <option>All Regions</option>
-                        <option>NCR</option>
-                        <option>Region IV-A</option>
-                        <option>Region III</option>
-                        <option>Region II</option>
+                    <select name="region" aria-label="Filter by region">
+                        <option value="" th:selected="${selectedRegion == null || selectedRegion == ''}">All Regions</option>
+                        <option th:each="region : ${regions}"
+                                th:value="${region}"
+                                th:text="${region}"
+                                th:selected="${region == selectedRegion}">
+                            NCR
+                        </option>
                     </select>
 
-                    <select aria-label="Filter by curriculum">
-                        <option>All Curricula</option>
-                        <option>TVET</option>
-                        <option>ALS</option>
-                        <option>College Undergrad</option>
-                        <option>Old Curriculum</option>
-                        <option>Senior High School</option>
+                    <select name="curriculum" aria-label="Filter by curriculum">
+                        <option value="" th:selected="${selectedCurriculum == null || selectedCurriculum == ''}">All Curricula</option>
+                        <option th:each="curriculum : ${curricula}"
+                                th:value="${curriculum['category_id']}"
+                                th:text="${curriculum['category_name']}"
+                                th:selected="${curriculum['category_id'] == selectedCurriculum}">
+                            Senior High School
+                        </option>
                     </select>
 
-                    <select aria-label="Filter by program">
-                        <option>All Programs</option>
-                        <option>BSIT</option>
-                        <option>BSOA</option>
-                        <option>BSTM</option>
-                        <option>BSENT</option>
+                    <select name="program" aria-label="Filter by program">
+                        <option value="" th:selected="${selectedProgram == null || selectedProgram == ''}">All Programs</option>
+                        <option th:each="program : ${programs}"
+                                th:value="${program['program_id']}"
+                                th:text="${program['program_code'] + ' — ' + program['program_name']}"
+                                th:selected="${#strings.toString(program['program_id']) == selectedProgram}">
+                            BSIT — Bachelor of Science in Information Technology
+                        </option>
                     </select>
 
-                    <select aria-label="Filter by status">
-                        <option>All Status</option>
-                        <option>Continuing</option>
-                        <option>Dismissed</option>
-                        <option>On Leave</option>
-                        <option>Cleared</option>
+                    <select name="status" aria-label="Filter by status">
+                        <option value="" th:selected="${selectedStatus == null || selectedStatus == ''}">All Status</option>
+                        <option value="continuing" th:selected="${selectedStatus == 'continuing'}">Continuing</option>
+                        <option value="on_leave" th:selected="${selectedStatus == 'on_leave'}">On Leave</option>
+                        <option value="cleared" th:selected="${selectedStatus == 'cleared'}">Cleared</option>
+                        <option value="pending" th:selected="${selectedStatus == 'pending'}">Pending Requirements</option>
                     </select>
-                </div>
+
+                    <button type="submit" class="filter-action-btn">Apply Filter</button>
+                    <a th:href="@{/reports}" href="/reports" class="reset-filter-btn">Reset</a>
+                </form>
 
                 <div class="report-stat-grid">
                     <div class="report-stat-card red">
                         <div class="report-stat-label">Filtered Students</div>
-                        <div class="report-stat-value">248</div>
+                        <div class="report-stat-value" th:text="${filteredStudents}">0</div>
                     </div>
 
                     <div class="report-stat-card gold">
                         <div class="report-stat-label">Cleared</div>
-                        <div class="report-stat-value">62</div>
+                        <div class="report-stat-value" th:text="${clearedStudents}">0</div>
                     </div>
 
                     <div class="report-stat-card">
                         <div class="report-stat-label">Pending Requirements</div>
-                        <div class="report-stat-value">183</div>
+                        <div class="report-stat-value" th:text="${pendingRequirements}">0</div>
                     </div>
                 </div>
 
@@ -480,53 +532,23 @@
                         <h3 class="breakdown-title">By Curriculum Type</h3>
 
                         <div class="progress-list">
-                            <div class="progress-row">
-                                <div class="progress-info">
-                                    <span>TVET</span>
-                                    <span class="progress-count">1 students</span>
-                                </div>
-                                <div class="progress-track">
-                                    <span class="progress-fill" style="width: 11%;"></span>
-                                </div>
+                            <div th:if="${curriculumBreakdown == null || #lists.isEmpty(curriculumBreakdown)}"
+                                 class="empty-report-message">
+                                No curriculum data found for the selected filters.
                             </div>
 
-                            <div class="progress-row">
+                            <div class="progress-row" th:each="row : ${curriculumBreakdown}">
                                 <div class="progress-info">
-                                    <span>ALS</span>
-                                    <span class="progress-count">1 students</span>
+                                    <span th:text="${row['label']}">Senior High School</span>
+                                    <span class="progress-count"
+                                          th:text="${row['count'] + (row['count'] == 1 ? ' student' : ' students')}">
+                                        0 students
+                                    </span>
                                 </div>
                                 <div class="progress-track">
-                                    <span class="progress-fill als" style="width: 11%;"></span>
-                                </div>
-                            </div>
-
-                            <div class="progress-row">
-                                <div class="progress-info">
-                                    <span>College Undergrad</span>
-                                    <span class="progress-count">1 students</span>
-                                </div>
-                                <div class="progress-track">
-                                    <span class="progress-fill college" style="width: 11%;"></span>
-                                </div>
-                            </div>
-
-                            <div class="progress-row">
-                                <div class="progress-info">
-                                    <span>Old Curriculum</span>
-                                    <span class="progress-count">1 students</span>
-                                </div>
-                                <div class="progress-track">
-                                    <span class="progress-fill old" style="width: 11%;"></span>
-                                </div>
-                            </div>
-
-                            <div class="progress-row">
-                                <div class="progress-info">
-                                    <span>Senior High School</span>
-                                    <span class="progress-count">5 students</span>
-                                </div>
-                                <div class="progress-track">
-                                    <span class="progress-fill shs" style="width: 56%;"></span>
+                                    <span class="progress-fill"
+                                          th:classappend="${row['cssClass']}"
+                                          th:style="${'width: ' + row['percent'] + '%;'}"></span>
                                 </div>
                             </div>
                         </div>
@@ -536,43 +558,22 @@
                         <h3 class="breakdown-title">By Last School (Region)</h3>
 
                         <div class="progress-list">
-                            <div class="progress-row">
-                                <div class="progress-info">
-                                    <span>NCR</span>
-                                    <span class="progress-count">2 students</span>
-                                </div>
-                                <div class="progress-track">
-                                    <span class="progress-fill region" style="width: 38%;"></span>
-                                </div>
+                            <div th:if="${regionBreakdown == null || #lists.isEmpty(regionBreakdown)}"
+                                 class="empty-report-message">
+                                No region data found for the selected filters.
                             </div>
 
-                            <div class="progress-row">
+                            <div class="progress-row" th:each="row : ${regionBreakdown}">
                                 <div class="progress-info">
-                                    <span>Region IV-A</span>
-                                    <span class="progress-count">2 students</span>
+                                    <span th:text="${row['label']}">NCR</span>
+                                    <span class="progress-count"
+                                          th:text="${row['count'] + (row['count'] == 1 ? ' student' : ' students')}">
+                                        0 students
+                                    </span>
                                 </div>
                                 <div class="progress-track">
-                                    <span class="progress-fill region" style="width: 38%;"></span>
-                                </div>
-                            </div>
-
-                            <div class="progress-row">
-                                <div class="progress-info">
-                                    <span>Region III</span>
-                                    <span class="progress-count">1 students</span>
-                                </div>
-                                <div class="progress-track">
-                                    <span class="progress-fill region" style="width: 15%;"></span>
-                                </div>
-                            </div>
-
-                            <div class="progress-row">
-                                <div class="progress-info">
-                                    <span>Region II</span>
-                                    <span class="progress-count">4 students</span>
-                                </div>
-                                <div class="progress-track">
-                                    <span class="progress-fill region" style="width: 44%;"></span>
+                                    <span class="progress-fill region"
+                                          th:style="${'width: ' + row['percent'] + '%;'}"></span>
                                 </div>
                             </div>
                         </div>
