@@ -12,11 +12,6 @@ Office of the University Registrar | AY 2025–2026 | BSITOUMN 2-3
 
 PDTS, or the **PUPOUS Document Tracking System**, is a Spring Boot web application for managing applicant records, admission documents, document status updates, applicant tracking tokens, staff users, audit logs, and student-facing status lookup.
 
-This README consolidates the previous project notes from:
-
-- `README.md`
-- `README_COMPLETE_SYSTEM.md`
-- `README_POSTGRESQL.md`
 
 The current project version is configured primarily for **PostgreSQL**, with legacy MySQL files preserved for reference.
 
