@@ -1,6 +1,8 @@
 // Path: src/main/java/com/pdts/service/EmailService.java
 package com.pdts.service;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
