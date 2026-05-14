@@ -4,18 +4,10 @@
     <title>System Settings</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
-    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/assets/favicon-32x32.png}" href="/assets/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/assets/favicon-16x16.png}" href="/assets/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/assets/apple-touch-icon.png}" href="/assets/apple-touch-icon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
 </head>
+
 <body>
 <div id="app">
 
@@ -31,25 +23,25 @@
             <div class="sb-logo-sub">POLYTECHNIC UNIVERSITY OF THE PHILIPPINES</div>
         </div>
 
-        <nav class="sb-section" aria-label="Main navigation">
+        <nav class="sb-section">
             <div class="sb-section-label">Main</div>
-            <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
-            <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Students / Applicants</a>
-            <a class="sb-nav-item" th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Document Submissions</a>
+            <a class="sb-nav-item" th:href="@{/dashboard}"><span class="icon">⌂</span>Dashboard</a>
+            <a class="sb-nav-item" th:href="@{/applicants}"><span class="icon">◎</span>Students / Applicants</a>
+            <a class="sb-nav-item" th:href="@{/requirements}"><span class="icon">▣</span>Document Submissions</a>
         </nav>
 
-        <nav class="sb-section" aria-label="Management navigation">
+        <nav class="sb-section">
             <div class="sb-section-label">Management</div>
-            <a class="sb-nav-item" th:href="@{/email-notifications}" href="/email-notifications"><span class="icon">✉</span>Email Notifications</a>
-            <a class="sb-nav-item" th:href="@{/tracking-lookup}" href="/tracking-lookup"><span class="icon">⌕</span>Tracking Lookup</a>
-            <a class="sb-nav-item" th:href="@{/reports}" href="/reports"><span class="icon">▤</span>Reports &amp; Filters</a>
+            <a class="sb-nav-item" th:href="@{/email-notifications}"><span class="icon">✉</span>Email Notifications</a>
+            <a class="sb-nav-item" th:href="@{/tracking-lookup}"><span class="icon">⌕</span>Tracking Lookup</a>
+            <a class="sb-nav-item" th:href="@{/reports}"><span class="icon">▤</span>Reports &amp; Filters</a>
         </nav>
 
-        <nav class="sb-section" aria-label="System navigation">
+        <nav class="sb-section">
             <div class="sb-section-label">System</div>
-            <a class="sb-nav-item" th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Audit Logs</a>
-            <a class="sb-nav-item" th:href="@{/users/new}" href="/users/new"><span class="icon">＋</span>Create Account</a>
-            <a class="sb-nav-item active" th:href="@{/users}" href="/users"><span class="icon">⚙</span>Settings</a>
+            <a class="sb-nav-item" th:href="@{/logs}"><span class="icon">≡</span>Audit Logs</a>
+            <a class="sb-nav-item" th:href="@{/users/new}"><span class="icon">＋</span>Create Account</a>
+            <a class="sb-nav-item active" th:href="@{/users}"><span class="icon">⚙</span>Settings</a>
         </nav>
 
         <div class="sb-bottom">
@@ -60,7 +52,7 @@
                     <div class="sb-user-role">Registrar Office</div>
                 </div>
             </div>
-            <a class="sb-nav-item logout" th:href="@{/logout}" href="/logout"><span class="icon">↪</span>Sign Out</a>
+            <a class="sb-nav-item logout" th:href="@{/logout}"><span class="icon">↪</span>Sign Out</a>
         </div>
     </aside>
 
@@ -68,53 +60,243 @@
         <header id="topbar">
             <div>
                 <div class="topbar-title">System Settings</div>
-                
             </div>
-            <div class="topbar-right"><span class="ay-label">AY 2025–2026 · 1st Semester</span><a class="btn btn-primary" th:href="@{/users/new}" href="/users/new">+ Add User</a></div>
+            <div class="topbar-right">
+                <span class="ay-label">System Configuration</span>
+                <a class="btn btn-primary" th:href="@{/users/new}">+ Add User</a>
+            </div>
         </header>
+
         <section id="content">
 
             <div th:if="${success}" class="flash success" th:text="${success}"></div>
+            <div th:if="${error}" class="flash error" th:text="${error}"></div>
+
             <div class="settings-grid">
+
+                <!-- SYSTEM CONFIGURATION -->
                 <section class="card">
-                    <div class="card-header"><h2 class="card-title">System Configuration</h2></div>
-                    <div class="form-grid single muted-form">
-                        <label class="form-group">Academic Year<input value="2025–2026" readonly></label>
-                        <label class="form-group">Current Semester<input value="First Semester" readonly></label>
-                        <label class="form-group">Max Photo Upload Size<input value="300 KB" readonly></label>
-                        <label class="form-group">Email Reminder Day<input value="Monday" readonly></label>
+                    <div class="card-header">
+                        <h2 class="card-title">System Configuration</h2>
                     </div>
+
+                    <form method="post" th:action="@{/settings/system}" class="form-grid single">
+
+                        <label class="form-group">
+                            Academic Year
+                            <input name="academicYear" type="text"
+                                   th:value="${settings.?[setting_key == 'academic_year'][0]['setting_value']}">
+                        </label>
+
+                        <label class="form-group">
+                            Current Semester
+                            <select name="currentSemester">
+                                <option value="First Semester"
+                                        th:selected="${settings.?[setting_key == 'current_semester'][0]['setting_value'] == 'First Semester'}">
+                                    First Semester
+                                </option>
+                                <option value="Second Semester"
+                                        th:selected="${settings.?[setting_key == 'current_semester'][0]['setting_value'] == 'Second Semester'}">
+                                    Second Semester
+                                </option>
+                                <option value="Summer"
+                                        th:selected="${settings.?[setting_key == 'current_semester'][0]['setting_value'] == 'Summer'}">
+                                    Summer
+                                </option>
+                            </select>
+                        </label>
+
+                        <label class="form-group">
+                            Max Photo Upload Size KB
+                            <input name="maxPhotoUploadKb" type="number"
+                                   th:value="${settings.?[setting_key == 'max_photo_upload_kb'][0]['setting_value']}">
+                        </label>
+
+                        <label class="form-group">
+                            Email Reminder Day
+                            <select name="emailReminderDay">
+                                <option value="Monday" th:selected="${settings.?[setting_key == 'email_reminder_day'][0]['setting_value'] == 'Monday'}">Monday</option>
+                                <option value="Tuesday" th:selected="${settings.?[setting_key == 'email_reminder_day'][0]['setting_value'] == 'Tuesday'}">Tuesday</option>
+                                <option value="Wednesday" th:selected="${settings.?[setting_key == 'email_reminder_day'][0]['setting_value'] == 'Wednesday'}">Wednesday</option>
+                                <option value="Thursday" th:selected="${settings.?[setting_key == 'email_reminder_day'][0]['setting_value'] == 'Thursday'}">Thursday</option>
+                                <option value="Friday" th:selected="${settings.?[setting_key == 'email_reminder_day'][0]['setting_value'] == 'Friday'}">Friday</option>
+                            </select>
+                        </label>
+
+                        <label class="form-group">
+                            Applicant Portal Status
+                            <select name="portalStatus">
+                                <option value="OPEN"
+                                        th:selected="${settings.?[setting_key == 'portal_status'][0]['setting_value'] == 'OPEN'}">
+                                    OPEN
+                                </option>
+                                <option value="CLOSED"
+                                        th:selected="${settings.?[setting_key == 'portal_status'][0]['setting_value'] == 'CLOSED'}">
+                                    CLOSED
+                                </option>
+                            </select>
+                        </label>
+
+                        <button class="btn btn-primary" type="submit">Save System Configuration</button>
+                    </form>
                 </section>
+
+                <!-- MANAGE USERS -->
                 <section class="card">
-                    <div class="card-header"><h2 class="card-title">Manage Users</h2><a class="btn btn-outline btn-sm" th:href="@{/users/new}" href="/users/new">+ Add User</a></div>
+                    <div class="card-header">
+                        <h2 class="card-title">Manage Users</h2>
+                        <a class="btn btn-outline btn-sm" th:href="@{/users/new}">+ Add User</a>
+                    </div>
+
                     <div class="user-list">
                         <div th:if="${users.isEmpty()}" class="empty-state">No staff accounts yet.</div>
+
                         <div class="user-row" th:each="u : ${users}">
-                            <div><strong th:text="${u['user_first_name'] + ' ' + u['user_last_name']}">User</strong><span th:text="${u['role_name'] + ' · ' + u['user_email_address']}">Role</span></div>
-                            <div class="user-actions"><span class="badge" th:text="${u['user_is_active'] == 1 ? 'Active' : 'Inactive'}">Active</span><form method="post" th:action="@{/users/{id}/toggle(id=${u['user_id']})}"><button class="btn btn-outline btn-sm" type="submit" th:text="${u['user_is_active'] == 1 ? 'Deactivate' : 'Activate'}">Toggle</button></form></div>
+                            <div>
+                                <strong th:text="${u['user_first_name'] + ' ' + u['user_last_name']}">User</strong>
+                                <span th:text="${u['role_name'] + ' · ' + u['user_email_address']}">Role</span>
+                            </div>
+
+                            <div class="user-actions">
+                                <span class="badge" th:text="${u['user_is_active'] == 1 ? 'Active' : 'Inactive'}">Active</span>
+
+                                <form method="post" th:action="@{/users/{id}/toggle(id=${u['user_id']})}">
+                                    <button class="btn btn-outline btn-sm" type="submit"
+                                            th:text="${u['user_is_active'] == 1 ? 'Deactivate' : 'Activate'}">
+                                        Toggle
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </section>
+
+                <!-- REJECTION REASON LIBRARY -->
                 <section class="card">
-                    <div class="card-header"><h2 class="card-title">Rejection Reason Library</h2></div>
+                    <div class="card-header">
+                        <h2 class="card-title">Rejection Reason Library</h2>
+                    </div>
+
+                    <form method="post" th:action="@{/settings/rejection-reasons}" class="form-grid single">
+                        <label class="form-group">
+                            Reason Name
+                            <input name="reasonName" type="text" placeholder="Example: Name Mismatch" required>
+                        </label>
+
+                        <label class="form-group">
+                            Description
+                            <textarea name="reasonDescription" placeholder="Enter rejection reason description" required></textarea>
+                        </label>
+
+                        <button class="btn btn-primary" type="submit">+ Add Rejection Reason</button>
+                    </form>
+
                     <div class="reason-list">
-                        <div>Not PSA-Authenticated <span class="badge badge-active">Active</span></div>
-                        <div>Old NSO Copy <span class="badge badge-active">Active</span></div>
-                        <div>Blurred/Unrecognized Registry Number <span class="badge badge-active">Active</span></div>
-                        <div>Name Mismatch <span class="badge badge-active">Active</span></div>
-                        <div>Birth Date Mismatch <span class="badge badge-active">Active</span></div>
+                        <div th:each="r : ${rejectionReasons}">
+                            <form method="post"
+                                  th:action="@{/settings/rejection-reasons/{id}/update(id=${r['rejection_reason_id']})}"
+                                  class="form-grid single">
+
+                                <input name="reasonName" type="text" th:value="${r['rejection_reason_name']}">
+                                <textarea name="reasonDescription" th:text="${r['rejection_reason_description']}"></textarea>
+
+                                <div class="user-actions">
+                                    <span class="badge"
+                                          th:text="${r['rejection_reason_is_active'] == 1 ? 'Active' : 'Inactive'}">
+                                        Active
+                                    </span>
+
+                                    <button class="btn btn-outline btn-sm" type="submit">Save</button>
+                                </div>
+                            </form>
+
+                            <form method="post"
+                                  th:action="@{/settings/rejection-reasons/{id}/toggle(id=${r['rejection_reason_id']})}">
+                                <button class="btn btn-outline btn-sm" type="submit"
+                                        th:text="${r['rejection_reason_is_active'] == 1 ? 'Deactivate' : 'Activate'}">
+                                    Toggle
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </section>
-                <section class="card">
-                    <div class="card-header"><h2 class="card-title">Campus / Program Master List</h2></div>
-                    <p class="td-muted mb-lg">Manage campuses and programs available for applicants. Backend maintenance screen can be added later.</p>
-                    <div class="reason-list"><div>BSIT <span class="badge badge-active">Active</span></div><div>BSOA <span class="badge badge-active">Active</span></div><div>BSTM <span class="badge badge-active">Active</span></div><div>BSENT <span class="badge badge-active">Active</span></div></div>
-                </section>
-            </div>
 
+                <!-- CAMPUS MASTER LIST -->
+                <section class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Campus Master List</h2>
+                    </div>
+
+                    <form method="post" th:action="@{/settings/campuses}" class="form-grid single">
+                        <label class="form-group">
+                            Campus Name
+                            <input name="campusName" type="text" required>
+                        </label>
+
+                        <label class="form-group">
+                            Campus Address
+                            <input name="campusAddress" type="text">
+                        </label>
+
+                        <button class="btn btn-primary" type="submit">+ Add Campus</button>
+                    </form>
+
+                    <div class="reason-list">
+                        <div th:each="c : ${campuses}">
+                            <strong th:text="${c['campus_name']}">Campus</strong>
+                            <span class="badge" th:text="${c['campus_is_active'] == 1 ? 'Active' : 'Inactive'}">Active</span>
+
+                            <form method="post" th:action="@{/settings/campuses/{id}/toggle(id=${c['campus_id']})}">
+                                <button class="btn btn-outline btn-sm" type="submit"
+                                        th:text="${c['campus_is_active'] == 1 ? 'Deactivate' : 'Activate'}">
+                                    Toggle
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PROGRAM MASTER LIST -->
+                <section class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Program Master List</h2>
+                    </div>
+
+                    <form method="post" th:action="@{/settings/programs}" class="form-grid single">
+                        <label class="form-group">
+                            Program Code
+                            <input name="programCode" type="text" placeholder="BSIT" required>
+                        </label>
+
+                        <label class="form-group">
+                            Program Name
+                            <input name="programName" type="text" placeholder="Bachelor of Science in Information Technology" required>
+                        </label>
+
+                        <button class="btn btn-primary" type="submit">+ Add Program</button>
+                    </form>
+
+                    <div class="reason-list">
+                        <div th:each="p : ${programs}">
+                            <strong th:text="${p['program_code']}">BSIT</strong>
+                            <span th:text="${p['program_name']}">Program Name</span>
+                            <span class="badge" th:text="${p['program_is_active'] == 1 ? 'Active' : 'Inactive'}">Active</span>
+
+                            <form method="post" th:action="@{/settings/programs/{id}/toggle(id=${p['program_id']})}">
+                                <button class="btn btn-outline btn-sm" type="submit"
+                                        th:text="${p['program_is_active'] == 1 ? 'Deactivate' : 'Activate'}">
+                                    Toggle
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
         </section>
     </main>
 </div>
+
 <script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
 </body>
 </html>
