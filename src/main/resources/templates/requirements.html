@@ -693,12 +693,11 @@
             <div class="form-group full">
                 <label for="modalApplicationId">Student Applicant</label>
                 <select id="modalApplicationId" name="applicationId" required>
-                    <option value="">Select student / application</option>
-                    <option th:if="${applications != null}"
-                            th:each="a : ${applications}"
-                            th:value="${a['application_id']}"
-                            th:text="${a['applicant_last_name'] + ', ' + a['applicant_first_name'] + ' (' + a['application_reference_number'] + ')'}">
-                        Dela Cruz, Juan (APP-2026-0001)
+                  <option th:if="${applications != null}"
+        th:each="a : ${applications}"
+        th:value="${a['application_id']}"
+        th:text="${a['applicant_last_name'] + ', ' + a['applicant_first_name'] + ' (' + a['application_reference_number'] + ')'}"
+        th:attr="data-background=${a['applicant_educational_background']}">
                     </option>
                 </select>
             </div>
@@ -708,11 +707,7 @@
                     <label for="modalRequirementTypeId">Document Type</label>
                     <select id="modalRequirementTypeId" name="requirementTypeId" required>
                         <option value="">Select document type</option>
-                        <option th:each="t : ${types}"
-                                th:value="${t['type_id']}"
-                                th:text="${t['requirement_type_name']}">
-                            PSA Birth Certificate
-                        </option>
+                    
                     </select>
                 </div>
 
@@ -846,6 +841,71 @@
         const fileLabel = document.querySelector("[data-file-label]");
         const filePreview = document.querySelector("[data-file-preview]");
         const uploadDate = document.getElementById("modalUploadDate");
+
+        const applicationSelect = document.getElementById("modalApplicationId");
+const requirementTypeSelect = document.getElementById("modalRequirementTypeId");
+
+const freshmanBackgrounds = [
+    "Senior High School",
+    "Old Curriculum",
+    "Alternative Learning System"
+];
+
+const transfereeBackgrounds = [
+    "College Undergraduate",
+    "TVET"
+];
+
+const freshmanRequirements = [
+    { id: "Academic Records", name: "Academic Records" },
+    { id: "PSA Birth Certificate", name: "PSA Birth Certificate" },
+    { id: "Certificate of Employment", name: "Certificate of Employment" },
+    { id: "NBI / Police Clearance", name: "NBI / Police Clearance" },
+    { id: "Recommendation Letter", name: "Recommendation Letter" },
+    { id: "2x2 ID Picture", name: "2x2 ID Picture" }
+];
+
+const transfereeRequirements = [
+    { id: "Transcript of Records (TOR)", name: "Transcript of Records (TOR)" },
+    { id: "PSA Birth Certificate", name: "PSA Birth Certificate" },
+    { id: "Certificate of Employment", name: "Certificate of Employment" },
+    { id: "NBI / Police Clearance", name: "NBI / Police Clearance" },
+    { id: "Recommendation Letter", name: "Recommendation Letter" },
+    { id: "2x2 ID Picture", name: "2x2 ID Picture" }
+];
+
+function resetRequirementTypes() {
+    requirementTypeSelect.innerHTML = '<option value="">Select document type</option>';
+}
+
+function addRequirementOptions(requirements) {
+    requirements.forEach(function(req) {
+        const option = document.createElement("option");
+        option.value = req.id;
+        option.textContent = req.name;
+        requirementTypeSelect.appendChild(option);
+    });
+}
+
+function updateRequirementTypes() {
+    if (!applicationSelect || !requirementTypeSelect) return;
+
+    resetRequirementTypes();
+
+    const selectedOption = applicationSelect.options[applicationSelect.selectedIndex];
+    const background = selectedOption ? selectedOption.dataset.background : "";
+
+    if (freshmanBackgrounds.includes(background)) {
+        addRequirementOptions(freshmanRequirements);
+    } else if (transfereeBackgrounds.includes(background)) {
+        addRequirementOptions(transfereeRequirements);
+    }
+}
+
+if (applicationSelect && requirementTypeSelect) {
+    applicationSelect.addEventListener("change", updateRequirementTypes);
+    updateRequirementTypes();
+}
 
         const searchInput = document.getElementById("documentSearchInput");
         const statusFilter = document.getElementById("documentStatusFilter");
