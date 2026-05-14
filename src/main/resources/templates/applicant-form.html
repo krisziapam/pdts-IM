@@ -133,9 +133,10 @@
             box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.08);
         }
 
-        .custom-select-wrapper {
+      .custom-select-wrapper {
     position: relative;
     width: 100%;
+    z-index: 9999;
 }
 
 .custom-select-dropdown {
@@ -143,13 +144,13 @@
     top: calc(100% + 6px);
     left: 0;
     width: 100%;
-    max-height: 220px;
+    max-height: 240px;
     overflow-y: auto;
     background: #ffffff;
     border: 1px solid #ddd6cf;
     border-radius: 14px;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.10);
-    z-index: 9999;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    z-index: 999999;
     display: none;
 }
 
@@ -583,23 +584,83 @@
 
     const provinceInput = document.getElementById("province");
     const regionInput = document.getElementById("region");
-    const provinceList = document.getElementById("provinceList");
+    const provinceInput = document.getElementById("province");
 
-    Object.keys(provinceRegionMap).sort().forEach(function (province) {
-        const option = document.createElement("option");
-        option.value = province;
-        provinceList.appendChild(option);
-    });
+const regionInput = document.getElementById("region");
 
-    function updateRegionFromProvince() {
-        const selectedProvince = provinceInput.value.trim();
-        regionInput.value = provinceRegionMap[selectedProvince] || "";
+const provinceDropdown = document.getElementById("provinceDropdown");
+
+function updateRegionFromProvince() {
+
+    const selectedProvince = provinceInput.value.trim();
+
+    regionInput.value = provinceRegionMap[selectedProvince] || "";
+}
+
+provinceInput.addEventListener("input", function () {
+
+    const value = this.value.toLowerCase();
+
+    provinceDropdown.innerHTML = "";
+
+    if (!value) {
+
+        provinceDropdown.style.display = "none";
+
+        regionInput.value = "";
+
+        return;
     }
 
-    provinceInput.addEventListener("input", updateRegionFromProvince);
-    provinceInput.addEventListener("change", updateRegionFromProvince);
+    const matches = Object.keys(provinceRegionMap)
+        .filter(function (province) {
 
-    updateRegionFromProvince();
+            return province.toLowerCase().includes(value);
+        })
+        .sort();
+
+    if (matches.length === 0) {
+
+        provinceDropdown.style.display = "none";
+
+        return;
+    }
+
+    matches.forEach(function (province) {
+
+        const option = document.createElement("div");
+
+        option.className = "custom-select-option";
+
+        option.textContent = province;
+
+        option.addEventListener("click", function () {
+
+            provinceInput.value = province;
+
+            regionInput.value = provinceRegionMap[province];
+
+            provinceDropdown.style.display = "none";
+        });
+
+        provinceDropdown.appendChild(option);
+    });
+
+    provinceDropdown.style.display = "block";
+});
+
+provinceInput.addEventListener("change", updateRegionFromProvince);
+
+document.addEventListener("click", function (e) {
+
+    if (!provinceDropdown.contains(e.target)
+        && e.target !== provinceInput) {
+
+        provinceDropdown.style.display = "none";
+    }
+});
+
+updateRegionFromProvince();
 </script>
 
 </body>
