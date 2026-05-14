@@ -48,6 +48,31 @@ public class UserPageController {
                 ORDER BY u.user_id
                 """));
 
+        model.addAttribute("settings", jdbc.queryForList("""
+        SELECT setting_key, setting_value, setting_label, setting_type, setting_options
+        FROM system_setting
+        WHERE setting_is_active = 1
+        ORDER BY setting_key
+        """));
+
+model.addAttribute("rejectionReasons", jdbc.queryForList("""
+        SELECT rejection_reason_id, rejection_reason_name, rejection_reason_description, rejection_reason_is_active
+        FROM rejection_reason
+        ORDER BY rejection_reason_id
+        """));
+
+model.addAttribute("campuses", jdbc.queryForList("""
+        SELECT campus_id, campus_name, campus_address, campus_is_active
+        FROM campus
+        ORDER BY campus_name
+        """));
+
+model.addAttribute("programs", jdbc.queryForList("""
+        SELECT program_id, program_code, program_name, program_is_active
+        FROM program
+        ORDER BY program_code
+        """));
+        
         return "users";
     }
 
