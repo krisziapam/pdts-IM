@@ -287,6 +287,7 @@ if (photoFile != null && !photoFile.isEmpty()) {
 @PostMapping("/profile/upload-photo")
 public String uploadOwnPhoto(@RequestParam("photo") MultipartFile photo,
                              java.security.Principal principal,
+                             jakarta.servlet.http.HttpSession session,
                              RedirectAttributes ra) {
     try {
         if (photo == null || photo.isEmpty()) {
@@ -338,7 +339,9 @@ public String uploadOwnPhoto(@RequestParam("photo") MultipartFile photo,
                 username
         );
 
-        ra.addFlashAttribute("success", "Profile photo updated. Please sign out and sign in again.");
+        session.setAttribute("loggedInUserPhoto", photoUrl);
+
+      ra.addFlashAttribute("success", "Profile photo updated.");
 
     } catch (Exception e) {
         ra.addFlashAttribute("error", "Photo upload failed: " + e.getMessage());
