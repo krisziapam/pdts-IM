@@ -284,7 +284,69 @@ if (photoFile != null && !photoFile.isEmpty()) {
 
         return "redirect:/users";
     }
+@PostMapping("/profile/upload-photo")
+public String uploadOwnPhoto(@RequestParam("photo") MultipartFile photo,
+                             java.security.Principal principal,
+                             RedirectAttributes ra) {
+    try {
+        if (photo == null || photo.isEmpty()) {
+            throw new IllegalArgumentException("Please choose a photo.");
+        }
 
+        String username = principal.getName();
+        String extension = getFileExtension(photo.getOriginalFilename());
+
+        String photoStoragePath = "users/" + username + "-" + UUID.randomUUID() + "." + extension;
+
+        String uploadUrl = supabaseUrl
+                + "/storage/v1/object/"
+                + userPhotoBucket
+                + "/"
+                + photoStoragePath;
+
+        HttpRequest uploadRequest = HttpRequest.newBuilder()
+                .uri(URI.create(uploadUrl))
+                .header("Authorization", "Bearer " + supabaseServiceKey)
+                .header("Content-Type", photo.getContentType())
+                .POST(HttpRequest.BodyPublishers.ofByteArray(photo.getBytes()))
+                .build();
+
+        HttpResponse<String> uploadResponse = httpClient.send(
+                uploadRequest,
+                HttpResponse.BodyHandlers.ofString()
+        );
+
+        if (uploadResponse.statusCode() >= 300) {
+            throw new RuntimeException("Photo upload failed.");
+        }
+
+        String photoUrl = supabaseUrl
+                + "/storage/v1/object/public/"
+                + userPhotoBucket
+                + "/"
+                + photoStoragePath;
+
+        jdbc.update("""
+                UPDATE app_user
+                SET user_photo_url = ?,
+                    user_photo_storage_path = ?,
+                    user_updated_at = CURRENT_TIMESTAMP
+                WHERE LOWER(user_username) = LOWER(?)
+                """,
+                photoUrl,
+                photoStoragePath,
+                username
+        );
+
+        ra.addFlashAttribute("success", "Profile photo updated. Please sign out and sign in again.");
+
+    } catch (Exception e) {
+        ra.addFlashAttribute("error", "Photo upload failed: " + e.getMessage());
+    }
+
+    return "redirect:/users";
+}
+    
     private String required(Map<String, String> form, String key) {
         String value = form.get(key);
 
