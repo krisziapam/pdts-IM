@@ -385,4 +385,25 @@ textarea { min-height: 90px; resize: vertical; }
     .btn-primary {
         width: 100%;
     }
+
+    .profile-photo-form {
+    margin: 0;
+}
+
+.profile-upload-trigger {
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+}
+
+.profile-upload-trigger img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile-upload-trigger input[type="file"] {
+    display: none;
+}
 }
