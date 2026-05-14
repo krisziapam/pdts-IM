@@ -1,12 +1,14 @@
 package com.pdts.controller;
 
 import com.pdts.service.AuditLogService;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -17,10 +19,16 @@ public class UserPageController {
 
     private final JdbcTemplate jdbc;
     private final AuditLogService auditLogService;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserPageController(JdbcTemplate jdbc, AuditLogService auditLogService) {
+    public UserPageController(
+            JdbcTemplate jdbc,
+            AuditLogService auditLogService,
+            PasswordEncoder passwordEncoder
+    ) {
         this.jdbc = jdbc;
         this.auditLogService = auditLogService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/users")
@@ -57,6 +65,34 @@ public class UserPageController {
     @PostMapping("/users")
     public String create(@RequestParam Map<String, String> form, RedirectAttributes ra) {
         try {
+            String lastName = required(form, "lastName");
+            String firstName = required(form, "firstName");
+            String middleName = blankToNull(form.get("middleName"));
+            Integer roleId = Integer.parseInt(required(form, "roleId"));
+            String email = required(form, "email").toLowerCase();
+            String username = required(form, "username").toLowerCase();
+            String password = required(form, "password");
+
+            Integer usernameCount = jdbc.queryForObject("""
+                    SELECT COUNT(*)
+                    FROM app_user
+                    WHERE LOWER(user_username) = LOWER(?)
+                    """, Integer.class, username);
+
+            if (usernameCount != null && usernameCount > 0) {
+                throw new IllegalArgumentException("Username already exists.");
+            }
+
+            Integer emailCount = jdbc.queryForObject("""
+                    SELECT COUNT(*)
+                    FROM app_user
+                    WHERE LOWER(user_email_address) = LOWER(?)
+                    """, Integer.class, email);
+
+            if (emailCount != null && emailCount > 0) {
+                throw new IllegalArgumentException("Email already exists.");
+            }
+
             Integer userId = jdbc.queryForObject("""
                     INSERT INTO app_user (
                         user_last_name,
@@ -72,25 +108,25 @@ public class UserPageController {
                     RETURNING user_id
                     """,
                     Integer.class,
-                    required(form, "lastName"),
-                    required(form, "firstName"),
-                    blankToNull(form.get("middleName")),
-                    Integer.parseInt(required(form, "roleId")),
-                    required(form, "email"),
-                    "{noop}" + required(form, "password"),
-                    required(form, "username")
+                    lastName,
+                    firstName,
+                    middleName,
+                    roleId,
+                    email,
+                    passwordEncoder.encode(password),
+                    username
             );
 
             auditLogService.log(
                     "CREATE_ACCOUNT",
                     "app_user",
                     userId != null ? userId.longValue() : null,
-                    "Created staff account for " + required(form, "firstName") + " " + required(form, "lastName"),
+                    "Created staff account for " + firstName + " " + lastName,
                     null,
-                    "Username: " + required(form, "username")
+                    "Username: " + username
             );
 
-            ra.addFlashAttribute("success", "Staff account created.");
+            ra.addFlashAttribute("success", "Staff account created successfully.");
 
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Failed to create staff account: " + e.getMessage());
@@ -113,6 +149,12 @@ public class UserPageController {
                     WHERE user_id = ?
                     """, id);
 
+            String username = String.valueOf(userInfo.get("user_username"));
+
+            if ("admin".equalsIgnoreCase(username) || id == 1) {
+                throw new IllegalArgumentException("Master admin account cannot be deactivated.");
+            }
+
             Integer oldActiveStatus = ((Number) userInfo.get("user_is_active")).intValue();
 
             jdbc.update("""
@@ -131,7 +173,6 @@ public class UserPageController {
                     """, Integer.class, id);
 
             String fullName = userInfo.get("user_first_name") + " " + userInfo.get("user_last_name");
-            String username = String.valueOf(userInfo.get("user_username"));
 
             String oldValue = oldActiveStatus == 1 ? "Active" : "Inactive";
             String newValue = newActiveStatus != null && newActiveStatus == 1 ? "Active" : "Inactive";
@@ -145,8 +186,10 @@ public class UserPageController {
                     newValue
             );
 
-            ra.addFlashAttribute("success", "Staff account status updated.");
+            ra.addFlashAttribute("success", "Staff account status updated successfully.");
 
+        } catch (EmptyResultDataAccessException e) {
+            ra.addFlashAttribute("error", "Staff account not found.");
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Failed to update staff account status: " + e.getMessage());
         }
@@ -158,7 +201,7 @@ public class UserPageController {
         String value = form.get(key);
 
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(key + " is required");
+            throw new IllegalArgumentException(key + " is required.");
         }
 
         return value.trim();
