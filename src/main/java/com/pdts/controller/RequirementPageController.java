@@ -2,13 +2,14 @@ package com.pdts.controller;
 
 import com.pdts.config.PdtsProperties;
 import com.pdts.service.AuditLogService;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -54,14 +55,10 @@ public class RequirementPageController {
                     ap.applicant_last_name,
                     ap.applicant_email_address
                 FROM requirement r
-                JOIN requirement_type rt
-                    ON rt.type_id = r.requirement_type_id
-                JOIN requirement_status rs
-                    ON rs.status_id = r.requirement_status_id
-                JOIN application a
-                    ON a.application_id = r.application_id
-                JOIN applicant ap
-                    ON ap.applicant_id = a.applicant_id
+                JOIN requirement_type rt ON rt.type_id = r.requirement_type_id
+                JOIN requirement_status rs ON rs.status_id = r.requirement_status_id
+                JOIN application a ON a.application_id = r.application_id
+                JOIN applicant ap ON ap.applicant_id = a.applicant_id
                 WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
                 """);
 
@@ -103,8 +100,7 @@ public class RequirementPageController {
             Integer activeApplicationCount = jdbc.queryForObject("""
                     SELECT COUNT(*)
                     FROM application a
-                    JOIN applicant ap
-                        ON ap.applicant_id = a.applicant_id
+                    JOIN applicant ap ON ap.applicant_id = a.applicant_id
                     WHERE a.application_id = ?
                       AND COALESCE(ap.applicant_is_deleted, 0) = 0
                     """, Integer.class, applicationId);
@@ -175,13 +171,170 @@ public class RequirementPageController {
                 try {
                     Files.deleteIfExists(savedFilePath);
                 } catch (Exception ignored) {
-                    // Ignore cleanup error.
                 }
             }
 
             ra.addFlashAttribute("error", "Upload failed: " + e.getMessage());
             return "redirect:/requirements/new";
         }
+    }
+
+    @GetMapping("/requirements/{id}/view")
+    @ResponseBody
+    public ResponseEntity<Resource> viewDocument(@PathVariable Integer id) {
+        try {
+            Map<String, Object> doc = jdbc.queryForMap("""
+                    SELECT requirement_image_path, requirement_file_name
+                    FROM requirement
+                    WHERE requirement_id = ?
+                    """, id);
+
+            String filePathValue = String.valueOf(doc.get("requirement_image_path"));
+            String fileName = String.valueOf(doc.get("requirement_file_name"));
+
+            Path filePath = Paths.get(filePathValue);
+
+            if (!Files.exists(filePath)) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Resource resource = new UrlResource(filePath.toUri());
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/requirements/{id}/delete")
+    public String deleteRequirement(@PathVariable Integer id, RedirectAttributes ra) {
+        try {
+            Map<String, Object> requirement = jdbc.queryForMap("""
+                    SELECT requirement_file_name, requirement_image_path, requirement_tracking_no
+                    FROM requirement
+                    WHERE requirement_id = ?
+                    """, id);
+
+            String filePath = String.valueOf(requirement.get("requirement_image_path"));
+            String trackingNo = String.valueOf(requirement.get("requirement_tracking_no"));
+            String fileName = String.valueOf(requirement.get("requirement_file_name"));
+
+            try {
+                Files.deleteIfExists(Paths.get(filePath));
+            } catch (Exception ignored) {
+            }
+
+            jdbc.update("""
+                    DELETE FROM requirement
+                    WHERE requirement_id = ?
+                    """, id);
+
+            auditLogService.log(
+                    "DELETE_DOCUMENT",
+                    "requirement",
+                    id.longValue(),
+                    "Deleted document " + fileName,
+                    trackingNo,
+                    null
+            );
+
+            ra.addFlashAttribute("success", "Document deleted successfully.");
+
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Delete failed: " + e.getMessage());
+        }
+
+        return "redirect:/requirements";
+    }
+
+    @PostMapping("/requirements/{id}/replace")
+    public String replaceRequirement(@PathVariable Integer id,
+                                     @RequestParam MultipartFile file,
+                                     RedirectAttributes ra) {
+
+        Path savedFilePath = null;
+
+        try {
+            if (file == null || file.isEmpty()) {
+                throw new IllegalArgumentException("Please choose a file.");
+            }
+
+            Map<String, Object> requirement = jdbc.queryForMap("""
+                    SELECT requirement_image_path, requirement_file_name, requirement_tracking_no
+                    FROM requirement
+                    WHERE requirement_id = ?
+                    """, id);
+
+            String oldPath = String.valueOf(requirement.get("requirement_image_path"));
+            String trackingNo = String.valueOf(requirement.get("requirement_tracking_no"));
+
+            try {
+                Files.deleteIfExists(Paths.get(oldPath));
+            } catch (Exception ignored) {
+            }
+
+            String originalName = file.getOriginalFilename() == null
+                    ? "document.pdf"
+                    : file.getOriginalFilename();
+
+            String ext = originalName.contains(".")
+                    ? originalName.substring(originalName.lastIndexOf('.'))
+                    : ".pdf";
+
+            String savedName = UUID.randomUUID() + ext;
+
+            Path uploadDir = Paths.get(pdtsProperties.getUploadDir());
+            Files.createDirectories(uploadDir);
+
+            savedFilePath = uploadDir.resolve(savedName);
+            Files.copy(file.getInputStream(), savedFilePath, StandardCopyOption.REPLACE_EXISTING);
+
+            jdbc.update("""
+                    UPDATE requirement
+                    SET requirement_file_name = ?,
+                        requirement_image_path = ?,
+                        requirement_upload_date = CURRENT_TIMESTAMP,
+                        requirement_status_id = 1,
+                        requirement_date_received = NULL,
+                        requirement_processed_by_user_id = NULL,
+                        requirement_processed_at = NULL,
+                        rejection_reason_id = NULL,
+                        rejection_reason_rejected_by_user_id = NULL,
+                        rejection_reason_rejected_at = NULL,
+                        requirement_remarks = NULL
+                    WHERE requirement_id = ?
+                    """,
+                    originalName,
+                    savedFilePath.toString(),
+                    id
+            );
+
+            auditLogService.log(
+                    "REUPLOAD_DOCUMENT",
+                    "requirement",
+                    id.longValue(),
+                    "Re-uploaded document " + originalName,
+                    trackingNo,
+                    "Status reset to Pending"
+            );
+
+            ra.addFlashAttribute("success", "Document replaced successfully.");
+
+        } catch (Exception e) {
+            if (savedFilePath != null) {
+                try {
+                    Files.deleteIfExists(savedFilePath);
+                } catch (Exception ignored) {
+                }
+            }
+
+            ra.addFlashAttribute("error", "Replace failed: " + e.getMessage());
+        }
+
+        return "redirect:/requirements";
     }
 
     @PostMapping("/requirements/{id}/status")
@@ -203,10 +356,8 @@ public class RequirementPageController {
                         rt.requirement_type_name,
                         rs.requirement_status_name AS old_status_name
                     FROM requirement r
-                    JOIN requirement_type rt
-                        ON rt.type_id = r.requirement_type_id
-                    JOIN requirement_status rs
-                        ON rs.status_id = r.requirement_status_id
+                    JOIN requirement_type rt ON rt.type_id = r.requirement_type_id
+                    JOIN requirement_status rs ON rs.status_id = r.requirement_status_id
                     WHERE r.requirement_id = ?
                     """, id);
 
@@ -281,22 +432,10 @@ public class RequirementPageController {
     }
 
     private String getRequirementActionType(Integer statusId) {
-        if (statusId == 3) {
-            return "RECEIVE_DOCUMENT";
-        }
-
-        if (statusId == 4) {
-            return "REJECT_DOCUMENT";
-        }
-
-        if (statusId == 5) {
-            return "FOR_RESUBMISSION";
-        }
-
-        if (statusId == 2) {
-            return "UNDER_REVIEW";
-        }
-
+        if (statusId == 3) return "RECEIVE_DOCUMENT";
+        if (statusId == 4) return "REJECT_DOCUMENT";
+        if (statusId == 5) return "FOR_RESUBMISSION";
+        if (statusId == 2) return "UNDER_REVIEW";
         return "UPDATE_DOCUMENT_STATUS";
     }
 
@@ -304,10 +443,8 @@ public class RequirementPageController {
         Integer count = jdbc.queryForObject("""
                 SELECT COUNT(*)
                 FROM requirement r
-                JOIN application a
-                    ON a.application_id = r.application_id
-                JOIN applicant ap
-                    ON ap.applicant_id = a.applicant_id
+                JOIN application a ON a.application_id = r.application_id
+                JOIN applicant ap ON ap.applicant_id = a.applicant_id
                 WHERE r.requirement_id = ?
                   AND COALESCE(ap.applicant_is_deleted, 0) = 0
                 """, Integer.class, requirementId);
@@ -343,8 +480,7 @@ public class RequirementPageController {
                     ap.applicant_first_name,
                     ap.applicant_last_name
                 FROM application a
-                JOIN applicant ap
-                    ON ap.applicant_id = a.applicant_id
+                JOIN applicant ap ON ap.applicant_id = a.applicant_id
                 WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
                 ORDER BY a.application_id DESC
                 """));
