@@ -693,6 +693,7 @@
             <div class="form-group full">
                 <label for="modalApplicationId">Student Applicant</label>
                 <select id="modalApplicationId" name="applicationId" required>
+                    <option value="">Select student / application</option>
                   <option th:if="${applications != null}"
         th:each="a : ${applications}"
         th:value="${a['application_id']}"
