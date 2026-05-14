@@ -1,7 +1,6 @@
 package com.pdts.controller;
 
 import com.pdts.service.AuditLogService;
-
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
@@ -25,12 +24,12 @@ import java.util.Map;
 public class ApplicantPageController {
 
     private final JdbcTemplate jdbc;
-private final AuditLogService auditLogService;
+    private final AuditLogService auditLogService;
 
-public ApplicantPageController(JdbcTemplate jdbc, AuditLogService auditLogService) {
-    this.jdbc = jdbc;
-    this.auditLogService = auditLogService;
-}
+    public ApplicantPageController(JdbcTemplate jdbc, AuditLogService auditLogService) {
+        this.jdbc = jdbc;
+        this.auditLogService = auditLogService;
+    }
 
     @GetMapping("/applicants")
     public String list(@RequestParam(required = false) String search,
@@ -122,6 +121,7 @@ public ApplicantPageController(JdbcTemplate jdbc, AuditLogService auditLogServic
         model.addAttribute("categories", jdbc.queryForList("""
                 SELECT category_id, category_name
                 FROM educational_background_category
+                WHERE category_is_active = 1
                 ORDER BY category_name
                 """));
 
@@ -183,14 +183,7 @@ public ApplicantPageController(JdbcTemplate jdbc, AuditLogService auditLogServic
                     Date.valueOf(required(form, "birthDate")),
                     required(form, "email"),
                     required(form, "contactNumber"),
-
-                    /*
-                     * IMPORTANT:
-                     * categoryId can be values like COL-004.
-                     * Do not parse it as Integer.
-                     */
                     required(form, "categoryId"),
-
                     required(form, "enrollmentStatus")
             );
 
@@ -217,17 +210,17 @@ public ApplicantPageController(JdbcTemplate jdbc, AuditLogService auditLogServic
                     referenceNo
             );
 
-           auditLogService.log(
-        "CREATE_STUDENT",
-        "applicant",
-        applicantId.longValue(),
-        "Created profile for " + required(form, "firstName") + " " + required(form, "lastName"),
-        null,
-        "Application reference: " + referenceNo
-);
+            auditLogService.log(
+                    "CREATE_STUDENT",
+                    "applicant",
+                    applicantId.longValue(),
+                    "Created profile for " + required(form, "firstName") + " " + required(form, "lastName"),
+                    null,
+                    "Application reference: " + referenceNo
+            );
 
-ra.addFlashAttribute("success", "Applicant created with application reference " + referenceNo + ".");
-return "redirect:/applicants/" + applicantId;
+            ra.addFlashAttribute("success", "Applicant created with application reference " + referenceNo + ".");
+            return "redirect:/applicants/" + applicantId;
 
         } catch (DuplicateKeyException e) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -304,7 +297,7 @@ return "redirect:/applicants/" + applicantId;
                          @RequestParam Map<String, String> form,
                          RedirectAttributes ra) {
 
-   int updated = jdbc.update("""
+        int updated = jdbc.update("""
                 UPDATE applicant SET
                     applicant_first_name = ?,
                     applicant_middle_name = ?,
@@ -342,45 +335,39 @@ return "redirect:/applicants/" + applicantId;
                 Date.valueOf(required(form, "birthDate")),
                 required(form, "email"),
                 required(form, "contactNumber"),
-
-                /*
-                 * IMPORTANT:
-                 * categoryId can be values like COL-004.
-                 * Do not parse it as Integer.
-                 */
                 required(form, "categoryId"),
-
                 required(form, "enrollmentStatus"),
                 id
         );
 
-       if (updated > 0) {
-    auditLogService.log(
-            "UPDATE_STUDENT",
-            "applicant",
-            id.longValue(),
-            "Updated profile for " + required(form, "firstName") + " " + required(form, "lastName"),
-            null,
-            "Enrollment status: " + required(form, "enrollmentStatus")
-    );
-}
+        if (updated > 0) {
+            auditLogService.log(
+                    "UPDATE_STUDENT",
+                    "applicant",
+                    id.longValue(),
+                    "Updated profile for " + required(form, "firstName") + " " + required(form, "lastName"),
+                    null,
+                    "Enrollment status: " + required(form, "enrollmentStatus")
+            );
+        }
 
-ra.addFlashAttribute("success", "Applicant updated.");
-return "redirect:/applicants/" + id;
+        ra.addFlashAttribute("success", "Applicant updated.");
+        return "redirect:/applicants/" + id;
     }
 
     @Transactional
     @PostMapping("/applicants/{id}/delete")
     public String delete(@PathVariable Integer id, RedirectAttributes ra) {
         List<String> applicantNames = jdbc.queryForList("""
-        SELECT applicant_first_name || ' ' || applicant_last_name
-        FROM applicant
-        WHERE applicant_id = ?
-        """, String.class, id);
+                SELECT applicant_first_name || ' ' || applicant_last_name
+                FROM applicant
+                WHERE applicant_id = ?
+                """, String.class, id);
 
-String applicantName = applicantNames.isEmpty()
-        ? "Applicant ID " + id
-        : applicantNames.get(0);
+        String applicantName = applicantNames.isEmpty()
+                ? "Applicant ID " + id
+                : applicantNames.get(0);
+
         List<String> documentPaths = jdbc.queryForList("""
                 SELECT r.requirement_image_path
                 FROM requirement r
@@ -405,27 +392,85 @@ String applicantName = applicantNames.isEmpty()
                   AND COALESCE(applicant_is_deleted, 0) = 0
                 """, id);
 
-       if (updated > 0) {
-    int filesDeleted = deleteUploadedFiles(documentPaths);
+        if (updated > 0) {
+            int filesDeleted = deleteUploadedFiles(documentPaths);
 
-    auditLogService.log(
-            "DELETE_STUDENT",
-            "applicant",
-            id.longValue(),
-            "Deleted profile for " + applicantName,
-            null,
-            "Deleted " + documentsDeleted + " document record(s) and " + filesDeleted + " uploaded file(s)."
-    );
+            auditLogService.log(
+                    "DELETE_STUDENT",
+                    "applicant",
+                    id.longValue(),
+                    "Deleted profile for " + applicantName,
+                    null,
+                    "Deleted " + documentsDeleted + " document record(s) and " + filesDeleted + " uploaded file(s)."
+            );
 
-    ra.addFlashAttribute("success", "Applicant deleted from the active list. Deleted "
-            + documentsDeleted + " related document record(s) and "
-            + filesDeleted + " uploaded file(s).");
-           
+            ra.addFlashAttribute("success", "Applicant deleted from the active list. Deleted "
+                    + documentsDeleted + " related document record(s) and "
+                    + filesDeleted + " uploaded file(s).");
+
         } else {
             ra.addFlashAttribute("error", "Applicant was not found or was already deleted.");
         }
 
         return "redirect:/applicants";
+    }
+
+    private void addLookups(Model model) {
+        model.addAttribute("categories", jdbc.queryForList("""
+                SELECT category_id, category_name
+                FROM educational_background_category
+                WHERE category_is_active = 1
+                ORDER BY category_name
+                """));
+
+        model.addAttribute("programs", jdbc.queryForList("""
+                SELECT program_id, program_name, program_code
+                FROM program
+                WHERE program_is_active = 1
+                ORDER BY program_name
+                """));
+
+        model.addAttribute("campuses", jdbc.queryForList("""
+                SELECT campus_id, campus_name
+                FROM campus
+                WHERE campus_is_active = 1
+                ORDER BY campus_name
+                """));
+
+        model.addAttribute("applicationStatuses", jdbc.queryForList("""
+                SELECT application_status_id, application_status_name
+                FROM application_status
+                ORDER BY application_status_id
+                """));
+
+        String defaultAcademicYear = getSettingValue(
+                "academic_year",
+                Year.now().getValue() + "-" + (Year.now().getValue() + 1)
+        );
+
+        String defaultSemester = getSettingValue(
+                "current_semester",
+                "First Semester"
+        );
+
+        model.addAttribute("defaultAcademicYear", defaultAcademicYear);
+        model.addAttribute("defaultSemester", defaultSemester);
+    }
+
+    private String getSettingValue(String key, String defaultValue) {
+        try {
+            String value = jdbc.queryForObject("""
+                    SELECT setting_value
+                    FROM system_setting
+                    WHERE setting_key = ?
+                      AND setting_is_active = 1
+                    """, String.class, key);
+
+            return value == null || value.isBlank() ? defaultValue : value.trim();
+
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 
     private int deleteUploadedFiles(List<String> documentPaths) {
@@ -442,39 +487,11 @@ String applicantName = applicantNames.isEmpty()
                     deleted++;
                 }
             } catch (IOException | RuntimeException ignored) {
-                // The database record is already removed. Continue deleting the other files.
+                // Continue deleting other files.
             }
         }
 
         return deleted;
-    }
-
-    private void addLookups(Model model) {
-        model.addAttribute("categories", jdbc.queryForList("""
-                SELECT category_id, category_name
-                FROM educational_background_category
-                ORDER BY category_name
-                """));
-
-        model.addAttribute("programs", jdbc.queryForList("""
-                SELECT program_id, program_name, program_code
-                FROM program
-                ORDER BY program_name
-                """));
-
-        model.addAttribute("campuses", jdbc.queryForList("""
-                SELECT campus_id, campus_name
-                FROM campus
-                ORDER BY campus_name
-                """));
-
-        model.addAttribute("applicationStatuses", jdbc.queryForList("""
-                SELECT application_status_id, application_status_name
-                FROM application_status
-                ORDER BY application_status_id
-                """));
-
-        model.addAttribute("defaultAcademicYear", Year.now().getValue() + "-" + (Year.now().getValue() + 1));
     }
 
     private Map<String, Object> one(String sql, Object... params) {
@@ -506,9 +523,11 @@ String applicantName = applicantNames.isEmpty()
 
     private String required(Map<String, String> form, String key) {
         String value = form.get(key);
+
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(key + " is required");
         }
+
         return value.trim();
     }
 
