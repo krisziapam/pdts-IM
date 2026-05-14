@@ -39,6 +39,59 @@
     display: block;
     grid-column: 1 / -1;
 }
+
+    .settings-grid {
+    display: block;
+}
+
+.tab-panel {
+    width: 100%;
+}
+
+.tab-panel form.form-grid.single {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+    align-items: end;
+}
+
+.tab-panel form.form-grid.single .btn {
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+.reason-list > div {
+    display: grid;
+    grid-template-columns: 260px 1fr 120px 160px;
+    gap: 20px;
+    align-items: center;
+    padding: 18px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.reason-list input,
+.reason-list textarea {
+    width: 100%;
+}
+
+.reason-list form {
+    display: contents;
+}
+
+.reason-list .user-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.reason-list > div > form:last-child {
+    justify-self: end;
+}
+
+.reason-list > div > form:last-child .btn {
+    min-width: 130px;
+}
+    
 </style>
     
 </head>
