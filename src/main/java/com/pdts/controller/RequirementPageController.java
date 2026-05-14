@@ -676,12 +676,13 @@ String html = """
                 ORDER BY rejection_reason_name
                 """));
 
-        model.addAttribute("applications", jdbc.queryForList("""
-                SELECT
-                    a.application_id,
-                    a.application_reference_number,
-                    ap.applicant_first_name,
-                    ap.applicant_last_name
+      model.addAttribute("applications", jdbc.queryForList("""
+        SELECT
+            a.application_id,
+            a.application_reference_number,
+            ap.applicant_first_name,
+            ap.applicant_last_name,
+            ap.applicant_educational_background
                 FROM application a
                 JOIN applicant ap ON ap.applicant_id = a.applicant_id
                 WHERE COALESCE(ap.applicant_is_deleted, 0) = 0
