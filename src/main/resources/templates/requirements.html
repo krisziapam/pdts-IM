@@ -565,12 +565,13 @@
                             </td>
 
                             <td>
-                                <a th:href="@{/requirements/{id}/view(id=${r['requirement_id']})}"
-                                   target="_blank"
-                                   th:title="${r['requirement_file_name']}"
-                                   class="photo-chip">
-                                    📷
-                                </a>
+                                <button type="button"
+        class="photo-chip document-preview-btn"
+        th:attr="data-id=${r['requirement_id']},
+                 data-file=${r['requirement_file_name']},
+                 data-track=${r['requirement_tracking_no']}">
+    📷
+</button>
                             </td>
 
                             <td>
@@ -865,5 +866,68 @@
     });
 </script>
 
+    <div class="document-modal-overlay" id="documentModal">
+
+    <div class="document-modal">
+
+        <div class="document-modal-header">
+            <h2>Document Preview</h2>
+
+            <button type="button"
+                    class="document-modal-close"
+                    id="closeDocumentModal">
+                &times;
+            </button>
+        </div>
+
+        <div class="document-modal-body">
+
+            <iframe id="documentViewer"
+                    style="
+                        width:100%;
+                        height:500px;
+                        border:none;
+                        border-radius:12px;
+                        background:#f5f5f5;
+                    ">
+            </iframe>
+
+            <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+
+                <a id="viewFullDocumentBtn"
+                   class="btn btn-primary"
+                   target="_blank">
+                    Open Full Document
+                </a>
+
+                <form id="replaceDocumentForm"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    <input type="file"
+                           name="file"
+                           accept="image/*,.pdf"
+                           required
+                           onchange="if(confirm('Replace this document?')) this.form.submit();">
+                </form>
+
+                <form id="deleteDocumentForm"
+                      method="post"
+                      onsubmit="return confirm('Delete this document?');">
+
+                    <button class="btn btn-outline btn-danger-soft"
+                            type="submit">
+                        Delete Document
+                    </button>
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+    
 </body>
 </html>
