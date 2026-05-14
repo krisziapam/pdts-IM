@@ -380,6 +380,49 @@
             margin-top: 4px;
         }
 
+        .document-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.document-modal-overlay.open {
+    display: flex;
+}
+
+.document-modal {
+    width: 100%;
+    max-width: 950px;
+    background: #fff;
+    border-radius: 18px;
+    padding: 24px;
+}
+
+.document-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.document-modal-header h2 {
+    margin: 0;
+    color: #8B0000;
+}
+
+.document-modal-close {
+    border: none;
+    background: transparent;
+    font-size: 34px;
+    cursor: pointer;
+    color: #999;
+}
+
         @media (max-width: 1100px) {
             .requirements-page .document-toolbar {
                 grid-template-columns: 1fr 1fr;
