@@ -407,6 +407,26 @@
     cursor: pointer;
     color: #999;
 }
+        .document-preview-placeholder {
+    height: 420px;
+    border-radius: 16px;
+    background: #f7f4f4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.document-preview-icon {
+    font-size: 72px;
+}
+
+.document-preview-text {
+    color: #666;
+    font-size: 16px;
+    font-weight: 600;
+}
 
         @media (max-width: 1100px) {
             .requirements-page .document-toolbar {
@@ -766,15 +786,17 @@
 
         <div class="document-modal-body">
 
-            <iframe id="documentViewer"
-                    style="
-                        width:100%;
-                        height:500px;
-                        border:none;
-                        border-radius:12px;
-                        background:#f5f5f5;
-                    ">
-            </iframe>
+            <div class="document-preview-placeholder">
+
+    <div class="document-preview-icon">
+        📄
+    </div>
+
+    <div class="document-preview-text">
+        Preview is opened in a new browser tab.
+    </div>
+
+</div>
 
             <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
 
@@ -950,9 +972,9 @@
 
                     const viewUrl = `/requirements/${id}/view`;
 
-                    documentViewer.src = viewUrl;
-
                     viewFullDocumentBtn.href = viewUrl;
+
+                    window.open(viewUrl, "_blank");
 
                     replaceDocumentForm.action = `/requirements/${id}/replace`;
 
@@ -969,8 +991,6 @@
             closeDocumentModal.addEventListener("click", function(){
 
                 documentModal.classList.remove("open");
-
-                documentViewer.src = "";
             });
         }
 
