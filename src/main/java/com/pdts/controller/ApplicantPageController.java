@@ -1,5 +1,12 @@
 package com.pdts.controller;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+
 import com.pdts.service.AuditLogService;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -25,6 +32,12 @@ public class ApplicantPageController {
 
     private final JdbcTemplate jdbc;
     private final AuditLogService auditLogService;
+
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+
+private final String resendApiKey = System.getenv("RESEND_API_KEY");
+private final String resendFromEmail = System.getenv("RESEND_FROM_EMAIL");
+private final String appBaseUrl = System.getenv().getOrDefault("APP_BASE_URL", "https://pdts-im.onrender.com");
 
     public ApplicantPageController(JdbcTemplate jdbc, AuditLogService auditLogService) {
         this.jdbc = jdbc;
@@ -218,6 +231,13 @@ public class ApplicantPageController {
                     null,
                     "Application reference: " + referenceNo
             );
+
+            sendApplicantPendingEmailSafe(
+        required(form, "email"),
+        required(form, "firstName"),
+        required(form, "lastName"),
+        referenceNo
+);
 
             ra.addFlashAttribute("success", "Applicant created with application reference " + referenceNo + ".");
             return "redirect:/applicants/" + applicantId;
@@ -520,6 +540,131 @@ public class ApplicantPageController {
 
         return prefix + String.format("%04d", next);
     }
+
+    private void sendApplicantPendingEmailSafe(String toEmail,
+                                           String firstName,
+                                           String lastName,
+                                           String referenceNo) {
+    try {
+
+        if (resendApiKey == null || resendApiKey.isBlank()
+                || resendFromEmail == null || resendFromEmail.isBlank()) {
+            return;
+        }
+
+        String trackingUrl = appBaseUrl + "/tracking-lookup?trackingNo="
+                + URLEncoder.encode(referenceNo, StandardCharsets.UTF_8);
+
+        String qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="
+                + URLEncoder.encode(trackingUrl, StandardCharsets.UTF_8);
+
+        String subject = "PUP Document Tracking Application Received - " + referenceNo;
+
+        String html = """
+                <div style="font-family:Arial,sans-serif;color:#222;line-height:1.6;">
+
+                    <h2 style="color:#8B0000;">
+                        Application Received
+                    </h2>
+
+                    <p>
+                        Dear %s %s,
+                    </p>
+
+                    <p>
+                        Your application has been received and is currently marked as
+                        <strong>Pending</strong>.
+                    </p>
+
+                    <p>
+                        <strong>Application Reference Number:</strong>
+                        %s
+                    </p>
+
+                    <p>
+                        You may track your application using the link below:
+                    </p>
+
+                    <p>
+                        <a href="%s"
+                           style="background:#8B0000;
+                                  color:white;
+                                  padding:12px 18px;
+                                  text-decoration:none;
+                                  border-radius:8px;
+                                  display:inline-block;">
+                            Track Application
+                        </a>
+                    </p>
+
+                    <p>
+                        You may also scan this QR code:
+                    </p>
+
+                    <p>
+                        <img src="%s"
+                             alt="Application QR Code"
+                             width="180"
+                             height="180">
+                    </p>
+
+                    <p>
+                        Thank you.
+                    </p>
+
+                    <p style="color:#666;font-size:13px;">
+                        PUP Registrar PDTS System
+                    </p>
+
+                </div>
+                """.formatted(
+                escapeJson(firstName),
+                escapeJson(lastName),
+                escapeJson(referenceNo),
+                trackingUrl,
+                qrUrl
+        );
+
+        String body = """
+                {
+                  "from": "%s",
+                  "to": ["%s"],
+                  "subject": "%s",
+                  "html": "%s"
+                }
+                """.formatted(
+                escapeJson(resendFromEmail),
+                escapeJson(toEmail),
+                escapeJson(subject),
+                escapeJson(html)
+        );
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.resend.com/emails"))
+                .header("Authorization", "Bearer " + resendApiKey)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+    } catch (Exception ignored) {
+        // Applicant creation must not fail if email sending fails.
+    }
+}
+
+private String escapeJson(String value) {
+
+    if (value == null) {
+        return "";
+    }
+
+    return value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "");
+}
 
     private String required(Map<String, String> form, String key) {
         String value = form.get(key);
