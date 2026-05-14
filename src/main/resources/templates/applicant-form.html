@@ -24,11 +24,8 @@
             justify-content: center;
         }
 
-        .modal-form-card {
-            width: 100%;
-            max-width: 1090px;
-            max-height: 92vh;
-            overflow-y: auto;
+       overflow-y: auto;
+overflow-x: visible;
             background: #ffffff;
             border-radius: 22px;
             padding: 34px 38px 34px;
@@ -384,19 +381,22 @@
                                th:value="${applicant != null ? applicant['applicant_city_municipality'] : ''}">
                     </div>
 
-                   <div class="form-group">
+        <div class="form-group">
     <label for="province">Province</label>
 
     <div class="custom-select-wrapper">
 
         <input id="province"
                name="province"
+               type="text"
                placeholder="Type province"
                autocomplete="off"
                required
                th:value="${applicant != null ? applicant['applicant_province'] : ''}">
 
-        <div id="provinceDropdown" class="custom-select-dropdown"></div>
+        <div id="provinceDropdown"
+             class="custom-select-dropdown">
+        </div>
 
     </div>
 </div>
@@ -583,11 +583,7 @@
     };
 
     const provinceInput = document.getElementById("province");
-    const regionInput = document.getElementById("region");
-    const provinceInput = document.getElementById("province");
-
 const regionInput = document.getElementById("region");
-
 const provinceDropdown = document.getElementById("provinceDropdown");
 
 function updateRegionFromProvince() {
