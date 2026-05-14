@@ -1,5 +1,14 @@
 package com.pdts.controller;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import java.util.UUID;
+
 import com.pdts.service.AuditLogService;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,6 +29,13 @@ public class UserPageController {
     private final JdbcTemplate jdbc;
     private final AuditLogService auditLogService;
     private final PasswordEncoder passwordEncoder;
+
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+
+private final String supabaseUrl = System.getenv("SUPABASE_URL");
+private final String supabaseServiceKey = System.getenv("SUPABASE_SERVICE_ROLE_KEY");
+private final String userPhotoBucket = System.getenv()
+        .getOrDefault("SUPABASE_USER_PHOTO_BUCKET", "user-photos");
 
     public UserPageController(
             JdbcTemplate jdbc,
@@ -88,7 +104,9 @@ model.addAttribute("programs", jdbc.queryForList("""
     }
 
     @PostMapping("/users")
-    public String create(@RequestParam Map<String, String> form, RedirectAttributes ra) {
+public String create(@RequestParam Map<String, String> form,
+                     @RequestParam(value = "photoFile", required = false) MultipartFile photoFile,
+                     RedirectAttributes ra) {
         try {
             String lastName = required(form, "lastName");
             String firstName = required(form, "firstName");
@@ -97,6 +115,47 @@ model.addAttribute("programs", jdbc.queryForList("""
             String email = required(form, "email").toLowerCase();
             String username = required(form, "username").toLowerCase();
             String password = required(form, "password");
+
+            String photoUrl = null;
+String photoStoragePath = null;
+
+if (photoFile != null && !photoFile.isEmpty()) {
+
+    String extension = getFileExtension(photoFile.getOriginalFilename());
+
+    photoStoragePath = "users/"
+            + UUID.randomUUID()
+            + "."
+            + extension;
+
+    String uploadUrl = supabaseUrl
+            + "/storage/v1/object/"
+            + userPhotoBucket
+            + "/"
+            + photoStoragePath;
+
+    HttpRequest uploadRequest = HttpRequest.newBuilder()
+            .uri(URI.create(uploadUrl))
+            .header("Authorization", "Bearer " + supabaseServiceKey)
+            .header("Content-Type", photoFile.getContentType())
+            .POST(HttpRequest.BodyPublishers.ofByteArray(photoFile.getBytes()))
+            .build();
+
+    HttpResponse<String> uploadResponse = httpClient.send(
+            uploadRequest,
+            HttpResponse.BodyHandlers.ofString()
+    );
+
+    if (uploadResponse.statusCode() >= 300) {
+        throw new RuntimeException("Photo upload failed.");
+    }
+
+    photoUrl = supabaseUrl
+            + "/storage/v1/object/public/"
+            + userPhotoBucket
+            + "/"
+            + photoStoragePath;
+}
 
             Integer usernameCount = jdbc.queryForObject("""
                     SELECT COUNT(*)
@@ -118,38 +177,42 @@ model.addAttribute("programs", jdbc.queryForList("""
                 throw new IllegalArgumentException("Email already exists.");
             }
 
-            Integer userId = jdbc.queryForObject("""
-                    INSERT INTO app_user (
-                        user_last_name,
-                        user_first_name,
-                        user_middle_name,
-                        role_id,
-                        user_email_address,
-                        user_password_hash,
-                        user_username,
-                        user_is_active
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-                    RETURNING user_id
-                    """,
-                    Integer.class,
-                    lastName,
-                    firstName,
-                    middleName,
-                    roleId,
-                    email,
-                    passwordEncoder.encode(password),
-                    username
-            );
+           Integer userId = jdbc.queryForObject("""
+        INSERT INTO app_user (
+            user_last_name,
+            user_first_name,
+            user_middle_name,
+            role_id,
+            user_email_address,
+            user_password_hash,
+            user_username,
+            user_is_active,
+            user_photo_url,
+            user_photo_storage_path
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+        RETURNING user_id
+        """,
+        Integer.class,
+        lastName,
+        firstName,
+        middleName,
+        roleId,
+        email,
+        passwordEncoder.encode(password),
+        username,
+        photoUrl,
+        photoStoragePath
+);
 
             auditLogService.log(
-                    "CREATE_ACCOUNT",
-                    "app_user",
-                    userId != null ? userId.longValue() : null,
-                    "Created staff account for " + firstName + " " + lastName,
-                    null,
-                    "Username: " + username
-            );
+        "CREATE_ACCOUNT",
+        "app_user",
+        userId != null ? userId.longValue() : null,
+        "Created staff account for " + firstName + " " + lastName,
+        null,
+        "Username: " + username
+);
 
             ra.addFlashAttribute("success", "Staff account created successfully.");
 
@@ -235,4 +298,12 @@ model.addAttribute("programs", jdbc.queryForList("""
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
     }
+
+    private String getFileExtension(String filename) {
+    if (filename == null || !filename.contains(".")) {
+        return "jpg";
+    }
+
+    return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+}
 }
