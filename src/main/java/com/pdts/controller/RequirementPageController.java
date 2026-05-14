@@ -32,8 +32,11 @@ public class RequirementPageController {
     private final String supabaseServiceRoleKey = System.getenv("SUPABASE_SERVICE_ROLE_KEY");
     private final String supabaseBucket = System.getenv().getOrDefault("SUPABASE_BUCKET", "requirement-documents");
 
-    public RequirementPageController(JdbcTemplate jdbc,
-                                     AuditLogService auditLogService) {
+    private final String resendApiKey = System.getenv("RESEND_API_KEY");
+    private final String resendFromEmail = System.getenv("RESEND_FROM_EMAIL");
+    private final String appBaseUrl = System.getenv().getOrDefault("APP_BASE_URL", "https://pdts-im.onrender.com");
+
+    public RequirementPageController(JdbcTemplate jdbc, AuditLogService auditLogService) {
         this.jdbc = jdbc;
         this.auditLogService = auditLogService;
     }
@@ -115,7 +118,6 @@ public class RequirementPageController {
             String originalName = cleanFileName(file.getOriginalFilename());
             String storagePath = buildStoragePath(applicationId, originalName);
             String publicUrl = uploadToSupabase(file, storagePath);
-
             String trackingNo = nextTrackingNo();
 
             jdbc.update("""
@@ -242,7 +244,7 @@ public class RequirementPageController {
             }
 
             Map<String, Object> requirement = jdbc.queryForMap("""
-                    SELECT application_id, requirement_file_name, requirement_tracking_no, requirement_storage_path
+                    SELECT application_id, requirement_tracking_no, requirement_storage_path
                     FROM requirement
                     WHERE requirement_id = ?
                     """, id);
@@ -494,6 +496,119 @@ public class RequirementPageController {
 
         String text = String.valueOf(value);
         return text.equalsIgnoreCase("null") ? null : text;
+    }
+
+    private void sendRequirementStatusEmailSafe(Integer requirementId,
+                                                String newStatus,
+                                                String trackingNo,
+                                                String documentType) {
+        try {
+            if (resendApiKey == null || resendApiKey.isBlank()
+                    || resendFromEmail == null || resendFromEmail.isBlank()) {
+                return;
+            }
+
+            Map<String, Object> info = jdbc.queryForMap("""
+                    SELECT
+                        ap.applicant_first_name,
+                        ap.applicant_last_name,
+                        ap.applicant_email_address,
+                        a.application_reference_number
+                    FROM requirement r
+                    JOIN application a ON a.application_id = r.application_id
+                    JOIN applicant ap ON ap.applicant_id = a.applicant_id
+                    WHERE r.requirement_id = ?
+                    """, requirementId);
+
+            String firstName = String.valueOf(info.get("applicant_first_name"));
+            String lastName = String.valueOf(info.get("applicant_last_name"));
+            String email = String.valueOf(info.get("applicant_email_address"));
+            String referenceNo = String.valueOf(info.get("application_reference_number"));
+
+            String trackingUrl = appBaseUrl + "/tracking-lookup?trackingNo="
+                    + URLEncoder.encode(referenceNo, StandardCharsets.UTF_8);
+
+            String subject = "PUP Document Tracking Status Update - " + referenceNo;
+
+            String html = """
+                    <div style="font-family:Arial,sans-serif;color:#222;line-height:1.6;">
+                        <h2 style="color:#8B0000;">Document Status Update</h2>
+
+                        <p>Dear %s %s,</p>
+
+                        <p>Your submitted document has been updated.</p>
+
+                        <p><strong>Application Reference Number:</strong> %s</p>
+                        <p><strong>Document Tracking Number:</strong> %s</p>
+                        <p><strong>Document Type:</strong> %s</p>
+                        <p><strong>Current Status:</strong> %s</p>
+
+                        <p>You may track your application using the link below:</p>
+
+                        <p>
+                            <a href="%s" style="background:#8B0000;color:white;padding:12px 18px;text-decoration:none;border-radius:8px;display:inline-block;">
+                                Track Application
+                            </a>
+                        </p>
+
+                        <p>Thank you.</p>
+
+                        <p style="color:#666;font-size:13px;">
+                            PUP Registrar PDTS System
+                        </p>
+                    </div>
+                    """.formatted(
+                    escapeJson(firstName),
+                    escapeJson(lastName),
+                    escapeJson(referenceNo),
+                    escapeJson(trackingNo),
+                    escapeJson(documentType),
+                    escapeJson(newStatus),
+                    trackingUrl
+            );
+
+            sendEmail(email, subject, html);
+
+        } catch (Exception ignored) {
+            // Status update must not fail if email sending fails.
+        }
+    }
+
+    private void sendEmail(String toEmail, String subject, String html) throws Exception {
+        String body = """
+                {
+                  "from": "%s",
+                  "to": ["%s"],
+                  "subject": "%s",
+                  "html": "%s"
+                }
+                """.formatted(
+                escapeJson(resendFromEmail),
+                escapeJson(toEmail),
+                escapeJson(subject),
+                escapeJson(html)
+        );
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.resend.com/emails"))
+                .header("Authorization", "Bearer " + resendApiKey)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "");
     }
 
     private String getRequirementActionType(Integer statusId) {
