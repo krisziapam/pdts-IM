@@ -91,6 +91,47 @@
 .reason-list > div > form:last-child .btn {
     min-width: 130px;
 }
+
+    .reason-list > div {
+    display: grid;
+    grid-template-columns: 280px 1fr 120px 160px;
+    gap: 20px;
+    align-items: center;
+    padding: 22px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.reason-list form {
+    display: contents;
+}
+
+.reason-list input,
+.reason-list textarea {
+    width: 100%;
+    min-height: 52px;
+}
+
+.reason-list textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.reason-list .badge {
+    width: fit-content;
+    padding: 6px 14px;
+    border-radius: 999px;
+}
+
+.reason-list .btn {
+    min-width: 130px;
+    height: 56px;
+}
+
+.reason-list .user-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
     
 </style>
     
