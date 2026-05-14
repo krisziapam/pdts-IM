@@ -530,49 +530,72 @@ public class RequirementPageController {
 
             String subject = "PUP Document Tracking Status Update - " + referenceNo;
 
-            String html = """
-                    <div style="font-family:Arial,sans-serif;color:#222;line-height:1.6;">
-                        <h2 style="color:#8B0000;">Document Status Update</h2>
+           String statusMessage = getStatusEmailMessage(newStatus);
 
-                        <p>Dear %s %s,</p>
+String html = """
+        <div style="font-family:Arial,sans-serif;color:#222;line-height:1.6;">
+            <h2 style="color:#8B0000;">Document Status Update</h2>
 
-                        <p>Your submitted document has been updated.</p>
+            <p>Dear %s %s,</p>
 
-                        <p><strong>Application Reference Number:</strong> %s</p>
-                        <p><strong>Document Tracking Number:</strong> %s</p>
-                        <p><strong>Document Type:</strong> %s</p>
-                        <p><strong>Current Status:</strong> %s</p>
+            <p>%s</p>
 
-                        <p>You may track your application using the link below:</p>
+            <p><strong>Application Reference Number:</strong> %s</p>
+            <p><strong>Document Tracking Number:</strong> %s</p>
+            <p><strong>Document Type:</strong> %s</p>
+            <p><strong>Current Status:</strong> %s</p>
 
-                        <p>
-                            <a href="%s" style="background:#8B0000;color:white;padding:12px 18px;text-decoration:none;border-radius:8px;display:inline-block;">
-                                Track Application
-                            </a>
-                        </p>
+            <p>
+                <a href="%s" style="background:#8B0000;color:white;padding:12px 18px;text-decoration:none;border-radius:8px;display:inline-block;">
+                    Track Application
+                </a>
+            </p>
 
-                        <p>Thank you.</p>
+            <p>Thank you.</p>
 
-                        <p style="color:#666;font-size:13px;">
-                            PUP Registrar PDTS System
-                        </p>
-                    </div>
-                    """.formatted(
-                    escapeJson(firstName),
-                    escapeJson(lastName),
-                    escapeJson(referenceNo),
-                    escapeJson(trackingNo),
-                    escapeJson(documentType),
-                    escapeJson(newStatus),
-                    trackingUrl
-            );
+            <p style="color:#666;font-size:13px;">
+                PUP Registrar PDTS System
+            </p>
+        </div>
+        """.formatted(
+        escapeJson(firstName),
+        escapeJson(lastName),
+        statusMessage,
+        escapeJson(referenceNo),
+        escapeJson(trackingNo),
+        escapeJson(documentType),
+        escapeJson(newStatus),
+        trackingUrl
+);
 
+            
             sendEmail(email, subject, html);
 
         } catch (Exception ignored) {
             // Status update must not fail if email sending fails.
         }
     }
+
+    private String getStatusEmailMessage(String status) {
+
+    if ("Verified/Received".equalsIgnoreCase(status)) {
+        return "Your submitted document has been verified and received. You may continue tracking your application status through the tracking portal.";
+    }
+
+    if ("Under Review".equalsIgnoreCase(status)) {
+        return "Your submitted document is still under review. Please continue checking the tracking portal for further updates.";
+    }
+
+    if ("For Resubmission".equalsIgnoreCase(status)) {
+        return "Your submitted document requires resubmission. Please review the remarks or instructions in the tracking portal, prepare the corrected document, and re-upload it for further evaluation.";
+    }
+
+    if ("Rejected".equalsIgnoreCase(status)) {
+        return "Your submitted document was rejected. Please check if the uploaded document is correct, clear, complete, and matches the required document type. Kindly prepare the correct file and resubmit it through the system.";
+    }
+
+    return "Your submitted document status has been updated. Please check the tracking portal for details.";
+}
 
     private void sendEmail(String toEmail, String subject, String html) throws Exception {
         String body = """
