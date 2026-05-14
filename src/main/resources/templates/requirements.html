@@ -966,7 +966,10 @@
         document.querySelectorAll(".document-preview-btn")
             .forEach(function(btn){
 
-                btn.addEventListener("click", function(){
+                btn.addEventListener("click", function(event){
+
+                    event.preventDefault();
+                    event.stopPropagation();
 
                     const id = this.dataset.id;
 
