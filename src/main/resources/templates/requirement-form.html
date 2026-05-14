@@ -6,16 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
-    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" th:href="@{/assets/favicon-32x32.png}" href="/assets/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" th:href="@{/assets/favicon-16x16.png}" href="/assets/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" th:href="@{/assets/apple-touch-icon.png}" href="/assets/apple-touch-icon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
 </head>
+
 <body>
 <div id="app">
 
@@ -31,21 +24,21 @@
             <div class="sb-logo-sub">POLYTECHNIC UNIVERSITY OF THE PHILIPPINES</div>
         </div>
 
-        <nav class="sb-section" aria-label="Main navigation">
+        <nav class="sb-section">
             <div class="sb-section-label">Main</div>
             <a class="sb-nav-item" th:href="@{/dashboard}" href="/dashboard"><span class="icon">⌂</span>Dashboard</a>
             <a class="sb-nav-item" th:href="@{/applicants}" href="/applicants"><span class="icon">◎</span>Students / Applicants</a>
             <a class="sb-nav-item active" th:href="@{/requirements}" href="/requirements"><span class="icon">▣</span>Document Submissions</a>
         </nav>
 
-        <nav class="sb-section" aria-label="Management navigation">
+        <nav class="sb-section">
             <div class="sb-section-label">Management</div>
             <a class="sb-nav-item" th:href="@{/email-notifications}" href="/email-notifications"><span class="icon">✉</span>Email Notifications</a>
             <a class="sb-nav-item" th:href="@{/tracking-lookup}" href="/tracking-lookup"><span class="icon">⌕</span>Tracking Lookup</a>
             <a class="sb-nav-item" th:href="@{/reports}" href="/reports"><span class="icon">▤</span>Reports &amp; Filters</a>
         </nav>
 
-        <nav class="sb-section" aria-label="System navigation">
+        <nav class="sb-section">
             <div class="sb-section-label">System</div>
             <a class="sb-nav-item" th:href="@{/logs}" href="/logs"><span class="icon">≡</span>Audit Logs</a>
             <a class="sb-nav-item" th:href="@{/users/new}" href="/users/new"><span class="icon">＋</span>Create Account</a>
@@ -70,26 +63,152 @@
                 <div class="topbar-title">Receive / Upload Document</div>
                 <div class="topbar-subtitle">Attach a document to an existing application.</div>
             </div>
-            <div class="topbar-right"><a class="btn btn-outline" th:href="@{/requirements}" href="/requirements">Back</a></div>
+            <div class="topbar-right">
+                <a class="btn btn-outline" th:href="@{/requirements}" href="/requirements">Back</a>
+            </div>
         </header>
+
         <section id="content">
 
             <div th:if="${error}" class="flash error" th:text="${error}"></div>
             <div th:if="${success}" class="flash success" th:text="${success}"></div>
 
-            <form class="card form-card narrow" method="post" th:action="@{/requirements}" enctype="multipart/form-data">
-                <div class="card-header"><h2 class="card-title">Document Information</h2><span class="td-muted">Attach a document to an existing application.</span></div>
-                <div class="form-grid single">
-                    <label class="form-group">Application<select name="applicationId" required><option value="">Select application</option><option th:each="a : ${applications}" th:value="${a['application_id']}" th:text="${a['application_reference_number'] + ' — ' + a['applicant_first_name'] + ' ' + a['applicant_last_name']}">Application</option></select></label>
-                    <label class="form-group">Requirement Type<select name="requirementTypeId" required><option value="">Select document type</option><option th:each="t : ${types}" th:value="${t['type_id']}" th:text="${t['requirement_type_name']}">Document</option></select></label>
-                    <label class="form-group">File<input type="file" name="file" required></label>
+            <form class="card form-card narrow"
+                  method="post"
+                  th:action="@{/requirements}"
+                  action="/requirements"
+                  enctype="multipart/form-data">
+
+                <div class="card-header">
+                    <h2 class="card-title">Document Information</h2>
+                    <span class="td-muted">Only required documents will show based on the applicant curriculum.</span>
                 </div>
-                <div class="form-actions"><a class="btn btn-outline" th:href="@{/requirements}" href="/requirements">Cancel</a><button class="btn btn-primary" type="submit">Upload Document</button></div>
+
+                <div class="form-grid single">
+
+                    <label class="form-group">
+                        Application
+                        <select id="applicationSelect" name="applicationId" required>
+                            <option value="">Select application</option>
+
+                            <option th:each="a : ${applications}"
+                                    th:value="${a['application_id']}"
+                                    th:text="${a['application_reference_number'] + ' — ' + a['applicant_first_name'] + ' ' + a['applicant_last_name']}"
+                                    th:attr="data-background=${a['applicant_educational_background']}">
+                                Application
+                            </option>
+                        </select>
+                    </label>
+
+                    <label class="form-group">
+                        Requirement Type
+                        <select id="requirementTypeSelect" name="requirementTypeId" required>
+                            <option value="">Select application first</option>
+                        </select>
+                    </label>
+
+                    <label class="form-group">
+                        File
+                        <input type="file" name="file" accept="image/*,.pdf" required>
+                    </label>
+
+                </div>
+
+                <div class="form-actions">
+                    <a class="btn btn-outline" th:href="@{/requirements}" href="/requirements">Cancel</a>
+                    <button class="btn btn-primary" type="submit">Upload Document</button>
+                </div>
+
             </form>
 
         </section>
     </main>
 </div>
+
 <script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const applicationSelect = document.getElementById("applicationSelect");
+    const requirementTypeSelect = document.getElementById("requirementTypeSelect");
+
+    const freshmanBackgrounds = [
+        "Senior High School",
+        "Old Curriculum",
+        "Alternative Learning System"
+    ];
+
+    const transfereeBackgrounds = [
+        "College Undergraduate",
+        "TVET"
+    ];
+
+    const freshmanRequirements = [
+        { id: "Academic Records", name: "Academic Records" },
+        { id: "PSA Birth Certificate", name: "PSA Birth Certificate" },
+        { id: "Certificate of Employment", name: "Certificate of Employment" },
+        { id: "NBI / Police Clearance", name: "NBI / Police Clearance" },
+        { id: "Recommendation Letter", name: "Recommendation Letter" },
+        { id: "2x2 ID Picture", name: "2x2 ID Picture" }
+    ];
+
+    const transfereeRequirements = [
+        { id: "Transcript of Records (TOR)", name: "Transcript of Records (TOR)" },
+        { id: "PSA Birth Certificate", name: "PSA Birth Certificate" },
+        { id: "Certificate of Employment", name: "Certificate of Employment" },
+        { id: "NBI / Police Clearance", name: "NBI / Police Clearance" },
+        { id: "Recommendation Letter", name: "Recommendation Letter" },
+        { id: "2x2 ID Picture", name: "2x2 ID Picture" }
+    ];
+
+    function resetRequirementTypes(message) {
+        requirementTypeSelect.innerHTML = "";
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = message || "Select document type";
+        requirementTypeSelect.appendChild(option);
+    }
+
+    function addRequirementOptions(requirements) {
+        requirements.forEach(function (req) {
+            const option = document.createElement("option");
+            option.value = req.id;
+            option.textContent = req.name;
+            requirementTypeSelect.appendChild(option);
+        });
+    }
+
+    function updateRequirementTypes() {
+        resetRequirementTypes("Select document type");
+
+        const selectedOption = applicationSelect.options[applicationSelect.selectedIndex];
+
+        if (!selectedOption || !selectedOption.value) {
+            resetRequirementTypes("Select application first");
+            return;
+        }
+
+        const background = selectedOption.dataset.background || "";
+
+        if (freshmanBackgrounds.includes(background)) {
+            addRequirementOptions(freshmanRequirements);
+            return;
+        }
+
+        if (transfereeBackgrounds.includes(background)) {
+            addRequirementOptions(transfereeRequirements);
+            return;
+        }
+
+        resetRequirementTypes("No requirements found for this curriculum");
+    }
+
+    applicationSelect.addEventListener("change", updateRequirementTypes);
+    updateRequirementTypes();
+
+});
+</script>
+
 </body>
 </html>
