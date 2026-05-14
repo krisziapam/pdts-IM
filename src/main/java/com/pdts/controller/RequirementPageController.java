@@ -1,11 +1,7 @@
 package com.pdts.controller;
 
-import com.pdts.config.PdtsProperties;
 import com.pdts.service.AuditLogService;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,10 +9,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,14 +25,16 @@ import java.util.UUID;
 public class RequirementPageController {
 
     private final JdbcTemplate jdbc;
-    private final PdtsProperties pdtsProperties;
     private final AuditLogService auditLogService;
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+
+    private final String supabaseUrl = System.getenv("SUPABASE_URL");
+    private final String supabaseServiceRoleKey = System.getenv("SUPABASE_SERVICE_ROLE_KEY");
+    private final String supabaseBucket = System.getenv().getOrDefault("SUPABASE_BUCKET", "requirement-documents");
 
     public RequirementPageController(JdbcTemplate jdbc,
-                                     PdtsProperties pdtsProperties,
                                      AuditLogService auditLogService) {
         this.jdbc = jdbc;
-        this.pdtsProperties = pdtsProperties;
         this.auditLogService = auditLogService;
     }
 
@@ -47,6 +47,9 @@ public class RequirementPageController {
                     r.requirement_file_name,
                     r.requirement_upload_date,
                     r.requirement_status_id,
+                    r.requirement_remarks,
+                    r.requirement_file_url,
+                    r.requirement_storage_path,
                     rt.requirement_type_name,
                     rs.requirement_status_name,
                     a.application_reference_number,
@@ -90,9 +93,9 @@ public class RequirementPageController {
                          @RequestParam MultipartFile file,
                          RedirectAttributes ra) {
 
-        Path savedFilePath = null;
-
         try {
+            validateSupabaseConfig();
+
             if (file == null || file.isEmpty()) {
                 throw new IllegalArgumentException("Please choose a file to upload.");
             }
@@ -109,21 +112,9 @@ public class RequirementPageController {
                 throw new IllegalArgumentException("Selected application does not belong to an active applicant.");
             }
 
-            String originalName = file.getOriginalFilename() == null
-                    ? "document.pdf"
-                    : file.getOriginalFilename();
-
-            String ext = originalName.contains(".")
-                    ? originalName.substring(originalName.lastIndexOf('.'))
-                    : ".pdf";
-
-            String savedName = UUID.randomUUID() + ext;
-
-            Path uploadDir = Paths.get(pdtsProperties.getUploadDir());
-            Files.createDirectories(uploadDir);
-
-            savedFilePath = uploadDir.resolve(savedName);
-            Files.copy(file.getInputStream(), savedFilePath, StandardCopyOption.REPLACE_EXISTING);
+            String originalName = cleanFileName(file.getOriginalFilename());
+            String storagePath = buildStoragePath(applicationId, originalName);
+            String publicUrl = uploadToSupabase(file, storagePath);
 
             String trackingNo = nextTrackingNo();
 
@@ -135,15 +126,19 @@ public class RequirementPageController {
                         requirement_tracking_no,
                         requirement_file_name,
                         requirement_image_path,
+                        requirement_file_url,
+                        requirement_storage_path,
                         requirement_uploaded_by_user_id
                     )
-                    VALUES (?, ?, 1, ?, ?, ?, 1)
+                    VALUES (?, ?, 1, ?, ?, ?, ?, ?, 1)
                     """,
                     applicationId,
                     requirementTypeId,
                     trackingNo,
                     originalName,
-                    savedFilePath.toString()
+                    publicUrl,
+                    publicUrl,
+                    storagePath
             );
 
             Integer requirementId = jdbc.queryForObject("""
@@ -160,52 +155,37 @@ public class RequirementPageController {
                     requirementId != null ? requirementId.longValue() : null,
                     "Uploaded " + originalName + " with tracking number " + trackingNo,
                     null,
-                    "Status: Pending"
+                    "Stored in Supabase Storage"
             );
 
             ra.addFlashAttribute("success", "Document uploaded. Tracking number: " + trackingNo);
             return "redirect:/requirements";
 
         } catch (Exception e) {
-            if (savedFilePath != null) {
-                try {
-                    Files.deleteIfExists(savedFilePath);
-                } catch (Exception ignored) {
-                }
-            }
-
             ra.addFlashAttribute("error", "Upload failed: " + e.getMessage());
             return "redirect:/requirements/new";
         }
     }
 
     @GetMapping("/requirements/{id}/view")
-    @ResponseBody
-    public ResponseEntity<Resource> viewDocument(@PathVariable Integer id) {
+    public String viewDocument(@PathVariable Integer id, RedirectAttributes ra) {
         try {
-            Map<String, Object> doc = jdbc.queryForMap("""
-                    SELECT requirement_image_path, requirement_file_name
+            String fileUrl = jdbc.queryForObject("""
+                    SELECT requirement_file_url
                     FROM requirement
                     WHERE requirement_id = ?
-                    """, id);
+                    """, String.class, id);
 
-            String filePathValue = String.valueOf(doc.get("requirement_image_path"));
-            String fileName = String.valueOf(doc.get("requirement_file_name"));
-
-            Path filePath = Paths.get(filePathValue);
-
-            if (!Files.exists(filePath)) {
-                return ResponseEntity.notFound().build();
+            if (fileUrl == null || fileUrl.isBlank()) {
+                ra.addFlashAttribute("error", "No document URL found. Please re-upload this document.");
+                return "redirect:/requirements";
             }
 
-            Resource resource = new UrlResource(filePath.toUri());
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
-                    .body(resource);
+            return "redirect:" + fileUrl;
 
         } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+            ra.addFlashAttribute("error", "Document not found or unavailable.");
+            return "redirect:/requirements";
         }
     }
 
@@ -213,18 +193,17 @@ public class RequirementPageController {
     public String deleteRequirement(@PathVariable Integer id, RedirectAttributes ra) {
         try {
             Map<String, Object> requirement = jdbc.queryForMap("""
-                    SELECT requirement_file_name, requirement_image_path, requirement_tracking_no
+                    SELECT requirement_file_name, requirement_tracking_no, requirement_storage_path
                     FROM requirement
                     WHERE requirement_id = ?
                     """, id);
 
-            String filePath = String.valueOf(requirement.get("requirement_image_path"));
             String trackingNo = String.valueOf(requirement.get("requirement_tracking_no"));
             String fileName = String.valueOf(requirement.get("requirement_file_name"));
+            String storagePath = stringOrNull(requirement.get("requirement_storage_path"));
 
-            try {
-                Files.deleteIfExists(Paths.get(filePath));
-            } catch (Exception ignored) {
+            if (storagePath != null && !storagePath.isBlank()) {
+                deleteFromSupabase(storagePath);
             }
 
             jdbc.update("""
@@ -238,7 +217,7 @@ public class RequirementPageController {
                     id.longValue(),
                     "Deleted document " + fileName,
                     trackingNo,
-                    null
+                    "Removed from Supabase Storage"
             );
 
             ra.addFlashAttribute("success", "Document deleted successfully.");
@@ -255,47 +234,37 @@ public class RequirementPageController {
                                      @RequestParam MultipartFile file,
                                      RedirectAttributes ra) {
 
-        Path savedFilePath = null;
-
         try {
+            validateSupabaseConfig();
+
             if (file == null || file.isEmpty()) {
                 throw new IllegalArgumentException("Please choose a file.");
             }
 
             Map<String, Object> requirement = jdbc.queryForMap("""
-                    SELECT requirement_image_path, requirement_file_name, requirement_tracking_no
+                    SELECT application_id, requirement_file_name, requirement_tracking_no, requirement_storage_path
                     FROM requirement
                     WHERE requirement_id = ?
                     """, id);
 
-            String oldPath = String.valueOf(requirement.get("requirement_image_path"));
+            Integer applicationId = ((Number) requirement.get("application_id")).intValue();
+            String oldStoragePath = stringOrNull(requirement.get("requirement_storage_path"));
             String trackingNo = String.valueOf(requirement.get("requirement_tracking_no"));
 
-            try {
-                Files.deleteIfExists(Paths.get(oldPath));
-            } catch (Exception ignored) {
+            if (oldStoragePath != null && !oldStoragePath.isBlank()) {
+                deleteFromSupabase(oldStoragePath);
             }
 
-            String originalName = file.getOriginalFilename() == null
-                    ? "document.pdf"
-                    : file.getOriginalFilename();
-
-            String ext = originalName.contains(".")
-                    ? originalName.substring(originalName.lastIndexOf('.'))
-                    : ".pdf";
-
-            String savedName = UUID.randomUUID() + ext;
-
-            Path uploadDir = Paths.get(pdtsProperties.getUploadDir());
-            Files.createDirectories(uploadDir);
-
-            savedFilePath = uploadDir.resolve(savedName);
-            Files.copy(file.getInputStream(), savedFilePath, StandardCopyOption.REPLACE_EXISTING);
+            String originalName = cleanFileName(file.getOriginalFilename());
+            String newStoragePath = buildStoragePath(applicationId, originalName);
+            String publicUrl = uploadToSupabase(file, newStoragePath);
 
             jdbc.update("""
                     UPDATE requirement
                     SET requirement_file_name = ?,
                         requirement_image_path = ?,
+                        requirement_file_url = ?,
+                        requirement_storage_path = ?,
                         requirement_upload_date = CURRENT_TIMESTAMP,
                         requirement_status_id = 1,
                         requirement_date_received = NULL,
@@ -308,7 +277,9 @@ public class RequirementPageController {
                     WHERE requirement_id = ?
                     """,
                     originalName,
-                    savedFilePath.toString(),
+                    publicUrl,
+                    publicUrl,
+                    newStoragePath,
                     id
             );
 
@@ -318,19 +289,12 @@ public class RequirementPageController {
                     id.longValue(),
                     "Re-uploaded document " + originalName,
                     trackingNo,
-                    "Status reset to Pending"
+                    "Stored in Supabase Storage. Status reset to Pending"
             );
 
             ra.addFlashAttribute("success", "Document replaced successfully.");
 
         } catch (Exception e) {
-            if (savedFilePath != null) {
-                try {
-                    Files.deleteIfExists(savedFilePath);
-                } catch (Exception ignored) {
-                }
-            }
-
             ra.addFlashAttribute("error", "Replace failed: " + e.getMessage());
         }
 
@@ -429,6 +393,105 @@ public class RequirementPageController {
         }
 
         return "redirect:/requirements";
+    }
+
+    private String uploadToSupabase(MultipartFile file, String storagePath) throws Exception {
+        String uploadUrl = supabaseUrl + "/storage/v1/object/" + supabaseBucket + "/" + encodeStoragePath(storagePath);
+
+        String contentType = file.getContentType() == null || file.getContentType().isBlank()
+                ? "application/octet-stream"
+                : file.getContentType();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(uploadUrl))
+                .header("Authorization", "Bearer " + supabaseServiceRoleKey)
+                .header("apikey", supabaseServiceRoleKey)
+                .header("Content-Type", contentType)
+                .header("x-upsert", "true")
+                .POST(HttpRequest.BodyPublishers.ofByteArray(file.getBytes()))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IllegalStateException("Supabase upload failed: " + response.body());
+        }
+
+        return supabaseUrl + "/storage/v1/object/public/" + supabaseBucket + "/" + encodeStoragePath(storagePath);
+    }
+
+    private void deleteFromSupabase(String storagePath) throws Exception {
+        String deleteUrl = supabaseUrl + "/storage/v1/object/" + supabaseBucket;
+
+        String body = "{\"prefixes\":[\"" + storagePath.replace("\"", "\\\"") + "\"]}";
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(deleteUrl))
+                .header("Authorization", "Bearer " + supabaseServiceRoleKey)
+                .header("apikey", supabaseServiceRoleKey)
+                .header("Content-Type", "application/json")
+                .method("DELETE", HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != HttpStatus.OK.value()
+                && response.statusCode() != HttpStatus.NO_CONTENT.value()
+                && response.statusCode() != HttpStatus.NOT_FOUND.value()) {
+            throw new IllegalStateException("Supabase delete failed: " + response.body());
+        }
+    }
+
+    private String buildStoragePath(Integer applicationId, String originalName) {
+        String ext = ".pdf";
+
+        if (originalName != null && originalName.contains(".")) {
+            ext = originalName.substring(originalName.lastIndexOf("."));
+        }
+
+        return "applications/" + applicationId + "/" + UUID.randomUUID() + ext;
+    }
+
+    private String cleanFileName(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return "document.pdf";
+        }
+
+        return fileName.replaceAll("[\\\\/]", "_").trim();
+    }
+
+    private String encodeStoragePath(String path) {
+        String[] parts = path.split("/");
+        List<String> encoded = new ArrayList<>();
+
+        for (String part : parts) {
+            encoded.add(URLEncoder.encode(part, StandardCharsets.UTF_8).replace("+", "%20"));
+        }
+
+        return String.join("/", encoded);
+    }
+
+    private void validateSupabaseConfig() {
+        if (supabaseUrl == null || supabaseUrl.isBlank()) {
+            throw new IllegalStateException("SUPABASE_URL is missing in environment variables.");
+        }
+
+        if (supabaseServiceRoleKey == null || supabaseServiceRoleKey.isBlank()) {
+            throw new IllegalStateException("SUPABASE_SERVICE_ROLE_KEY is missing in environment variables.");
+        }
+
+        if (supabaseBucket == null || supabaseBucket.isBlank()) {
+            throw new IllegalStateException("SUPABASE_BUCKET is missing in environment variables.");
+        }
+    }
+
+    private String stringOrNull(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        String text = String.valueOf(value);
+        return text.equalsIgnoreCase("null") ? null : text;
     }
 
     private String getRequirementActionType(Integer statusId) {
