@@ -386,6 +386,8 @@ public class RequirementPageController {
                     newStatus
             );
 
+            sendRequirementStatusEmailSafe(id, newStatus, trackingNo, documentType);
+
             ra.addFlashAttribute("success", "Requirement status updated.");
 
         } catch (Exception e) {
