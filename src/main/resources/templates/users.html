@@ -5,7 +5,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" type="image/x-icon" th:href="@{/favicon.ico}" href="/favicon.ico">
-    <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
+    
+   <link rel="stylesheet" th:href="@{/css/dashboard.css}" href="/css/dashboard.css">
+
+<style>
+.settings-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    border: 1px solid #8B0000;
+    background: #fff;
+    color: #8B0000;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    background: #8B0000;
+    color: #fff;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+    grid-column: 1 / -1;
+}
+</style>
+
+
+<script>
+document.querySelectorAll(".tab-btn").forEach(function(button) {
+    button.addEventListener("click", function() {
+        const tab = this.dataset.tab;
+
+        document.querySelectorAll(".tab-btn").forEach(function(btn) {
+            btn.classList.remove("active");
+        });
+
+        document.querySelectorAll(".tab-panel").forEach(function(panel) {
+            panel.classList.remove("active");
+        });
+
+        this.classList.add("active");
+        document.querySelector('[data-panel="' + tab + '"]').classList.add("active");
+    });
+});
+</script>
+            
+
+            
+</style>
+    
 </head>
 
 <body>
@@ -72,10 +131,18 @@
             <div th:if="${success}" class="flash success" th:text="${success}"></div>
             <div th:if="${error}" class="flash error" th:text="${error}"></div>
 
-            <div class="settings-grid">
+            <div class="settings-tabs">
+    <button type="button" class="tab-btn active" data-tab="config">System Configuration</button>
+    <button type="button" class="tab-btn" data-tab="users">Manage Users</button>
+    <button type="button" class="tab-btn" data-tab="reasons">Rejection Reasons</button>
+    <button type="button" class="tab-btn" data-tab="campuses">Campuses</button>
+    <button type="button" class="tab-btn" data-tab="programs">Programs</button>
+</div>
+
+<div class="settings-grid">
 
                 <!-- SYSTEM CONFIGURATION -->
-                <section class="card">
+                <section class="card tab-panel active" data-panel="config">
                     <div class="card-header">
                         <h2 class="card-title">System Configuration</h2>
                     </div>
@@ -142,7 +209,7 @@
                 </section>
 
                 <!-- MANAGE USERS -->
-                <section class="card">
+                <section class="card tab-panel" data-panel="users">
                     <div class="card-header">
                         <h2 class="card-title">Manage Users</h2>
                         <a class="btn btn-outline btn-sm" th:href="@{/users/new}">+ Add User</a>
@@ -172,7 +239,7 @@
                 </section>
 
                 <!-- REJECTION REASON LIBRARY -->
-                <section class="card">
+                <section class="card tab-panel" data-panel="reasons">
                     <div class="card-header">
                         <h2 class="card-title">Rejection Reason Library</h2>
                     </div>
@@ -222,7 +289,7 @@
                 </section>
 
                 <!-- CAMPUS MASTER LIST -->
-                <section class="card">
+                <section class="card tab-panel" data-panel="campuses">
                     <div class="card-header">
                         <h2 class="card-title">Campus Master List</h2>
                     </div>
@@ -257,7 +324,7 @@
                 </section>
 
                 <!-- PROGRAM MASTER LIST -->
-                <section class="card">
+                <section class="card tab-panel" data-panel="programs">
                     <div class="card-header">
                         <h2 class="card-title">Program Master List</h2>
                     </div>
@@ -296,6 +363,27 @@
         </section>
     </main>
 </div>
+
+
+
+<script>
+document.querySelectorAll(".tab-btn").forEach(function(button) {
+    button.addEventListener("click", function() {
+        const tab = this.dataset.tab;
+
+        document.querySelectorAll(".tab-btn").forEach(function(btn) {
+            btn.classList.remove("active");
+        });
+
+        document.querySelectorAll(".tab-panel").forEach(function(panel) {
+            panel.classList.remove("active");
+        });
+
+        this.classList.add("active");
+        document.querySelector('[data-panel="' + tab + '"]').classList.add("active");
+    });
+});
+</script>
 
 <script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
 </body>
