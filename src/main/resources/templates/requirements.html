@@ -193,13 +193,6 @@
             min-width: 360px;
         }
 
-        .requirements-page .action-wrap {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
         .requirements-page .action-status-form {
             margin: 0;
         }
@@ -219,14 +212,6 @@
             outline: none;
         }
 
-        .requirements-page .inline-upload-form {
-            margin: 0;
-        }
-
-        .requirements-page .replace-file-input {
-            max-width: 150px;
-            font-size: 12px;
-        }
 
         .requirements-page .btn-danger-soft {
             border-color: #b03030;
@@ -636,56 +621,32 @@
                                 —
                             </td>
 
-                            <td class="action-cell">
-                                <div class="action-wrap">
+                           <td class="action-cell">
 
-                                    <a class="btn btn-outline btn-sm"
-                                       th:href="@{/requirements/{id}/view(id=${r['requirement_id']})}"
-                                       target="_blank">
-                                        View
-                                    </a>
+    <form class="action-status-form"
+          method="post"
+          th:action="@{/requirements/{id}/status(id=${r['requirement_id']})}">
 
-                                    <form class="action-status-form"
-                                          method="post"
-                                          th:action="@{/requirements/{id}/status(id=${r['requirement_id']})}">
-                                        <select class="action-select"
-                                                name="statusId"
-                                                aria-label="Update status"
-                                                onchange="this.form.submit()">
-                                            <option th:each="s : ${statuses}"
-                                                    th:value="${s['status_id']}"
-                                                    th:selected="${r['requirement_status_id'] == s['status_id']}"
-                                                    th:text="${s['requirement_status_name']}">
-                                                Pending
-                                            </option>
-                                        </select>
+        <select class="action-select"
+                name="statusId"
+                aria-label="Update status"
+                onchange="this.form.submit()">
 
-                                        <input type="hidden" name="rejectionReasonId" value="">
-                                        <input type="hidden" name="remarks" value="">
-                                    </form>
+            <option th:each="s : ${statuses}"
+                    th:value="${s['status_id']}"
+                    th:selected="${r['requirement_status_id'] == s['status_id']}"
+                    th:text="${s['requirement_status_name']}">
+                Pending
+            </option>
 
-                                    <form class="inline-upload-form"
-                                          method="post"
-                                          enctype="multipart/form-data"
-                                          th:action="@{/requirements/{id}/replace(id=${r['requirement_id']})}">
-                                        <input class="replace-file-input"
-                                               type="file"
-                                               name="file"
-                                               accept="image/*,.pdf"
-                                               required
-                                               onchange="if(confirm('Replace this submitted document?')) { this.form.submit(); } else { this.value=''; }">
-                                    </form>
+        </select>
 
-                                    <form method="post"
-                                          th:action="@{/requirements/{id}/delete(id=${r['requirement_id']})}"
-                                          onsubmit="return confirm('Are you sure you want to delete this submitted document?');">
-                                        <button class="btn btn-outline btn-sm btn-danger-soft" type="submit">
-                                            Delete
-                                        </button>
-                                    </form>
+        <input type="hidden" name="rejectionReasonId" value="">
+        <input type="hidden" name="remarks" value="">
 
-                                </div>
-                            </td>
+    </form>
+
+</td>
                         </tr>
                         </tbody>
                     </table>
@@ -789,6 +750,69 @@
     </div>
 </div>
 
+    <div class="document-modal-overlay" id="documentModal">
+
+    <div class="document-modal">
+
+        <div class="document-modal-header">
+            <h2>Document Preview</h2>
+
+            <button type="button"
+                    class="document-modal-close"
+                    id="closeDocumentModal">
+                &times;
+            </button>
+        </div>
+
+        <div class="document-modal-body">
+
+            <iframe id="documentViewer"
+                    style="
+                        width:100%;
+                        height:500px;
+                        border:none;
+                        border-radius:12px;
+                        background:#f5f5f5;
+                    ">
+            </iframe>
+
+            <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+
+                <a id="viewFullDocumentBtn"
+                   class="btn btn-primary"
+                   target="_blank">
+                    Open Full Document
+                </a>
+
+                <form id="replaceDocumentForm"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    <input type="file"
+                           name="file"
+                           accept="image/*,.pdf"
+                           required
+                           onchange="if(confirm('Replace this document?')) this.form.submit();">
+                </form>
+
+                <form id="deleteDocumentForm"
+                      method="post"
+                      onsubmit="return confirm('Delete this document?');">
+
+                    <button class="btn btn-outline btn-danger-soft"
+                            type="submit">
+                        Delete Document
+                    </button>
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+    
 <script th:src="@{/js/dashboard.js}" src="/js/dashboard.js"></script>
 
 <script>
@@ -906,71 +930,65 @@
         if (typeFilter) {
             typeFilter.addEventListener("change", filterDocumentRows);
         }
+
+                const documentModal = document.getElementById("documentModal");
+
+        const documentViewer = document.getElementById("documentViewer");
+
+        const viewFullDocumentBtn = document.getElementById("viewFullDocumentBtn");
+
+        const replaceDocumentForm = document.getElementById("replaceDocumentForm");
+
+        const deleteDocumentForm = document.getElementById("deleteDocumentForm");
+
+        document.querySelectorAll(".document-preview-btn")
+            .forEach(function(btn){
+
+                btn.addEventListener("click", function(){
+
+                    const id = this.dataset.id;
+
+                    const viewUrl = `/requirements/${id}/view`;
+
+                    documentViewer.src = viewUrl;
+
+                    viewFullDocumentBtn.href = viewUrl;
+
+                    replaceDocumentForm.action = `/requirements/${id}/replace`;
+
+                    deleteDocumentForm.action = `/requirements/${id}/delete`;
+
+                    documentModal.classList.add("open");
+                });
+            });
+
+        const closeDocumentModal = document.getElementById("closeDocumentModal");
+
+        if (closeDocumentModal) {
+
+            closeDocumentModal.addEventListener("click", function(){
+
+                documentModal.classList.remove("open");
+
+                documentViewer.src = "";
+            });
+        }
+
+        if (documentModal) {
+
+            documentModal.addEventListener("click", function(e){
+
+                if(e.target === documentModal){
+
+                    documentModal.classList.remove("open");
+
+                    documentViewer.src = "";
+                }
+            });
+        }
     });
 </script>
 
-    <div class="document-modal-overlay" id="documentModal">
-
-    <div class="document-modal">
-
-        <div class="document-modal-header">
-            <h2>Document Preview</h2>
-
-            <button type="button"
-                    class="document-modal-close"
-                    id="closeDocumentModal">
-                &times;
-            </button>
-        </div>
-
-        <div class="document-modal-body">
-
-            <iframe id="documentViewer"
-                    style="
-                        width:100%;
-                        height:500px;
-                        border:none;
-                        border-radius:12px;
-                        background:#f5f5f5;
-                    ">
-            </iframe>
-
-            <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
-
-                <a id="viewFullDocumentBtn"
-                   class="btn btn-primary"
-                   target="_blank">
-                    Open Full Document
-                </a>
-
-                <form id="replaceDocumentForm"
-                      method="post"
-                      enctype="multipart/form-data">
-
-                    <input type="file"
-                           name="file"
-                           accept="image/*,.pdf"
-                           required
-                           onchange="if(confirm('Replace this document?')) this.form.submit();">
-                </form>
-
-                <form id="deleteDocumentForm"
-                      method="post"
-                      onsubmit="return confirm('Delete this document?');">
-
-                    <button class="btn btn-outline btn-danger-soft"
-                            type="submit">
-                        Delete Document
-                    </button>
-                </form>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
     
 </body>
 </html>
